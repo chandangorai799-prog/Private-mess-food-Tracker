@@ -10,6 +10,7 @@ import {
   MealType,
   DayRecord,
   PaymentRecord,
+  DEFAULT_MEAL_PRICE,
 } from './types';
 import {
   loadMealData,
@@ -111,15 +112,26 @@ export default function App() {
 
   // Toggle meal status (received / pending)
   const handleToggleMeal = (dateKey: string, meal: MealType) => {
+    const activePrice =
+      settings.mealPrice && settings.mealPrice > 0
+        ? settings.mealPrice
+        : DEFAULT_MEAL_PRICE;
+
     setMealData((prevData) => {
-      const dayRecord = getDayRecord(prevData, dateKey);
+      const dayRecord = getDayRecord(prevData, dateKey, activePrice);
       const currentEntry = dayRecord[meal];
 
       const newReceived = !currentEntry.received;
+      const rateToUse = newReceived
+        ? (currentEntry.rateAtTime ?? activePrice)
+        : activePrice;
+
       const updatedEntry = {
         received: newReceived,
         markedAt: newReceived ? getCurrentFormattedTime() : undefined,
         markedTimestamp: newReceived ? Date.now() : undefined,
+        rateAtTime: rateToUse,
+        amount: newReceived ? rateToUse : 0,
       };
 
       const updatedDayRecord: DayRecord = {
@@ -170,19 +182,32 @@ export default function App() {
     return calculateMonthStats(selectedYear, selectedMonth, mealData);
   }, [selectedYear, selectedMonth, mealData]);
 
+  const activeMealPrice =
+    settings.mealPrice && settings.mealPrice > 0
+      ? settings.mealPrice
+      : DEFAULT_MEAL_PRICE;
+
   const billing = useMemo(() => {
     return calculateBillingSummary(
       selectedYear,
       selectedMonth,
       mealData,
       payments,
-      settings.usePreviousAdvance ?? true
+      settings.usePreviousAdvance ?? true,
+      activeMealPrice
     );
-  }, [selectedYear, selectedMonth, mealData, payments, settings.usePreviousAdvance]);
+  }, [
+    selectedYear,
+    selectedMonth,
+    mealData,
+    payments,
+    settings.usePreviousAdvance,
+    activeMealPrice,
+  ]);
 
   // Today's Record
   const todayKey = formatDateKey(today);
-  const todayRecord = getDayRecord(mealData, todayKey);
+  const todayRecord = getDayRecord(mealData, todayKey, activeMealPrice);
   const todayMealsCount =
     (todayRecord.breakfast.received ? 1 : 0) +
     (todayRecord.lunch.received ? 1 : 0) +

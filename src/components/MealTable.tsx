@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MealTrackerData, MealType, MessSettings, DayRecord, FIXED_MEAL_RATE } from '../types';
+import { MealTrackerData, MealType, MessSettings, DayRecord, DEFAULT_MEAL_PRICE } from '../types';
 import { getDayRecord } from '../utils/storage';
 import {
   formatDateKey,
@@ -10,7 +10,7 @@ import {
   format12HourTime,
   formatStringDateToIndian,
 } from '../utils/dateUtils';
-import { Check, Calendar, Trash2, Plus, Minus, Info } from 'lucide-react';
+import { Check, Calendar, Trash2, Plus, Minus } from 'lucide-react';
 import { ConfirmationModal } from './ConfirmationModal';
 
 interface MealTableProps {
@@ -35,12 +35,13 @@ export const MealTable: React.FC<MealTableProps> = ({
   const [filter, setFilter] = useState<FilterMode>('all');
   const [deletingDateKey, setDeletingDateKey] = useState<string | null>(null);
 
+  const activePrice = settings.mealPrice && settings.mealPrice > 0 ? settings.mealPrice : DEFAULT_MEAL_PRICE;
   const dates = getDatesInMonth(selectedYear, selectedMonth);
 
   // Filter dates based on active tab
   const filteredDates = dates.filter((d) => {
     const key = formatDateKey(d);
-    const record = getDayRecord(data, key);
+    const record = getDayRecord(data, key, activePrice);
     const status = getDateStatus(d);
     const isToday = isTodayDate(d);
 
@@ -57,19 +58,24 @@ export const MealTable: React.FC<MealTableProps> = ({
     return true; // 'all'
   });
 
-  // Calculate bottom total summary
+  // Calculate bottom total summary using actual meal entry amounts
   let monthTotalMeals = 0;
+  let monthTotalBill = 0;
+
   dates.forEach((d) => {
     const key = formatDateKey(d);
-    const rec = getDayRecord(data, key);
-    if (rec.breakfast.received) monthTotalMeals++;
-    if (rec.lunch.received) monthTotalMeals++;
-    if (rec.dinner.received) monthTotalMeals++;
+    const rec = getDayRecord(data, key, activePrice);
+    (['breakfast', 'lunch', 'dinner'] as MealType[]).forEach((mealKey) => {
+      const entry = rec[mealKey];
+      if (entry.received) {
+        monthTotalMeals++;
+        monthTotalBill += entry.amount ?? entry.rateAtTime ?? activePrice;
+      }
+    });
   });
-  const monthTotalBill = monthTotalMeals * FIXED_MEAL_RATE;
 
   const handleIncrementMeals = (dateKey: string) => {
-    const rec = getDayRecord(data, dateKey);
+    const rec = getDayRecord(data, dateKey, activePrice);
     if (!rec.breakfast.received) {
       onToggleMeal(dateKey, 'breakfast');
     } else if (!rec.lunch.received) {
@@ -80,7 +86,7 @@ export const MealTable: React.FC<MealTableProps> = ({
   };
 
   const handleDecrementMeals = (dateKey: string) => {
-    const rec = getDayRecord(data, dateKey);
+    const rec = getDayRecord(data, dateKey, activePrice);
     if (rec.dinner.received) {
       onToggleMeal(dateKey, 'dinner');
     } else if (rec.lunch.received) {
@@ -100,7 +106,7 @@ export const MealTable: React.FC<MealTableProps> = ({
             Daily Meal Record & Breakdown
           </h2>
           <p className="text-xs text-slate-400 font-medium">
-            Each meal = <strong className="text-emerald-400">₹{FIXED_MEAL_RATE}</strong> • Tap buttons to toggle or adjust
+            Rate = <strong className="text-emerald-400">₹{activePrice} / meal</strong> • Tap buttons to toggle or adjust
           </p>
         </div>
 
@@ -188,7 +194,7 @@ export const MealTable: React.FC<MealTableProps> = ({
             ) : (
               filteredDates.map((d) => {
                 const dateKey = formatDateKey(d);
-                const record = getDayRecord(data, dateKey);
+                const record = getDayRecord(data, dateKey, activePrice);
                 const isToday = isTodayDate(d);
                 const dateStatus = getDateStatus(d);
                 const dayName = getShortDayName(d);
@@ -201,7 +207,10 @@ export const MealTable: React.FC<MealTableProps> = ({
                   (record.lunch.received ? 1 : 0) +
                   (record.dinner.received ? 1 : 0);
 
-                const dailyCost = totalDayReceived * FIXED_MEAL_RATE;
+                const dailyCost =
+                  (record.breakfast.received ? (record.breakfast.amount ?? record.breakfast.rateAtTime ?? activePrice) : 0) +
+                  (record.lunch.received ? (record.lunch.amount ?? record.lunch.rateAtTime ?? activePrice) : 0) +
+                  (record.dinner.received ? (record.dinner.amount ?? record.dinner.rateAtTime ?? activePrice) : 0);
 
                 return (
                   <tr
@@ -242,6 +251,7 @@ export const MealTable: React.FC<MealTableProps> = ({
                       <MealCellButton
                         mealName="Breakfast"
                         entry={record.breakfast}
+                        activePrice={activePrice}
                         onToggle={() => onToggleMeal(dateKey, 'breakfast')}
                       />
                     </td>
@@ -251,6 +261,7 @@ export const MealTable: React.FC<MealTableProps> = ({
                       <MealCellButton
                         mealName="Lunch"
                         entry={record.lunch}
+                        activePrice={activePrice}
                         onToggle={() => onToggleMeal(dateKey, 'lunch')}
                       />
                     </td>
@@ -260,6 +271,7 @@ export const MealTable: React.FC<MealTableProps> = ({
                       <MealCellButton
                         mealName="Dinner"
                         entry={record.dinner}
+                        activePrice={activePrice}
                         onToggle={() => onToggleMeal(dateKey, 'dinner')}
                       />
                     </td>
@@ -297,7 +309,7 @@ export const MealTable: React.FC<MealTableProps> = ({
                             ₹{dailyCost}
                           </span>
                           <span className="text-[10px] text-slate-400">
-                            {totalDayReceived} × ₹{FIXED_MEAL_RATE}
+                            {totalDayReceived} {totalDayReceived === 1 ? 'meal' : 'meals'}
                           </span>
                         </div>
                       </div>
@@ -336,7 +348,7 @@ export const MealTable: React.FC<MealTableProps> = ({
         <div className="flex items-center gap-2">
           <span>Total Month Bill:</span>
           <span className="px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black text-base shadow-sm">
-            {monthTotalMeals} × ₹{FIXED_MEAL_RATE} = ₹{monthTotalBill.toLocaleString('en-IN')}
+            ₹{monthTotalBill.toLocaleString('en-IN')}
           </span>
         </div>
       </div>
@@ -364,14 +376,17 @@ export const MealTable: React.FC<MealTableProps> = ({
 interface MealCellButtonProps {
   mealName: string;
   entry: DayRecord['breakfast'];
+  activePrice: number;
   onToggle: () => void;
 }
 
 const MealCellButton: React.FC<MealCellButtonProps> = ({
   entry,
+  activePrice,
   onToggle,
 }) => {
   const isReceived = entry.received;
+  const cost = entry.amount ?? entry.rateAtTime ?? activePrice;
 
   return (
     <button
@@ -384,14 +399,14 @@ const MealCellButton: React.FC<MealCellButtonProps> = ({
       }`}
       title={
         isReceived
-          ? `Received (₹${FIXED_MEAL_RATE}). Click to remove.`
-          : `Mark Received (+₹${FIXED_MEAL_RATE})`
+          ? `Received (₹${cost}). Click to remove.`
+          : `Mark Received (+₹${activePrice})`
       }
     >
       {isReceived ? (
         <>
           <Check className="w-3.5 h-3.5 stroke-[3]" />
-          <span>₹{FIXED_MEAL_RATE}</span>
+          <span>₹{cost}</span>
         </>
       ) : (
         <span className="text-slate-500">—</span>

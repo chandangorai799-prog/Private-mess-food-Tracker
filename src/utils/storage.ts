@@ -5,8 +5,9 @@ import {
   MonthStats,
   PaymentRecord,
   BillingSummary,
-  FIXED_MEAL_RATE,
+  DEFAULT_MEAL_PRICE,
   MealEntry,
+  MealType,
 } from '../types';
 import {
   formatDateKey,
@@ -30,6 +31,7 @@ export const DEFAULT_SETTINGS: MessSettings = {
   dinnerTime: '20:00',
   messName: 'Private Mess',
   usePreviousAdvance: true,
+  mealPrice: DEFAULT_MEAL_PRICE,
 };
 
 /**
@@ -39,7 +41,12 @@ export function loadSettings(): MessSettings {
   try {
     const raw = localStorage.getItem(STORAGE_SETTINGS_KEY);
     if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const mealPrice =
+      typeof parsed.mealPrice === 'number' && parsed.mealPrice > 0
+        ? parsed.mealPrice
+        : DEFAULT_MEAL_PRICE;
+    return { ...DEFAULT_SETTINGS, ...parsed, mealPrice };
   } catch (err) {
     console.error('Failed to load mess settings', err);
     return DEFAULT_SETTINGS;
@@ -58,16 +65,21 @@ export function saveSettings(settings: MessSettings): void {
 }
 
 /**
- * Migrate single meal entry to ensure rateAtTime = 44 and amount = 44 when received
+ * Migrate single meal entry to ensure rateAtTime and amount are properly set
  */
-function migrateMealEntry(entry?: MealEntry): MealEntry {
+function migrateMealEntry(
+  entry?: MealEntry,
+  defaultPrice: number = DEFAULT_MEAL_PRICE
+): MealEntry {
   if (!entry) {
-    return { received: false, rateAtTime: FIXED_MEAL_RATE, amount: 0 };
+    return { received: false, rateAtTime: defaultPrice, amount: 0 };
   }
+  const rateAtTime = entry.rateAtTime ?? defaultPrice;
+  const amount = entry.received ? (entry.amount ?? rateAtTime) : 0;
   return {
     ...entry,
-    rateAtTime: entry.rateAtTime ?? FIXED_MEAL_RATE,
-    amount: entry.received ? (entry.amount ?? FIXED_MEAL_RATE) : 0,
+    rateAtTime,
+    amount,
   };
 }
 
@@ -143,20 +155,24 @@ export const savePaymentData = savePayments;
 /**
  * Get record for a specific date string (YYYY-MM-DD), returning default if non-existent
  */
-export function getDayRecord(data: MealTrackerData, dateKey: string): DayRecord {
+export function getDayRecord(
+  data: MealTrackerData,
+  dateKey: string,
+  currentPrice: number = DEFAULT_MEAL_PRICE
+): DayRecord {
   if (data[dateKey]) {
     const rec = data[dateKey];
     return {
-      breakfast: migrateMealEntry(rec.breakfast),
-      lunch: migrateMealEntry(rec.lunch),
-      dinner: migrateMealEntry(rec.dinner),
+      breakfast: migrateMealEntry(rec.breakfast, currentPrice),
+      lunch: migrateMealEntry(rec.lunch, currentPrice),
+      dinner: migrateMealEntry(rec.dinner, currentPrice),
       note: rec.note,
     };
   }
   return {
-    breakfast: { received: false, rateAtTime: FIXED_MEAL_RATE, amount: 0 },
-    lunch: { received: false, rateAtTime: FIXED_MEAL_RATE, amount: 0 },
-    dinner: { received: false, rateAtTime: FIXED_MEAL_RATE, amount: 0 },
+    breakfast: { received: false, rateAtTime: currentPrice, amount: 0 },
+    lunch: { received: false, rateAtTime: currentPrice, amount: 0 },
+    dinner: { received: false, rateAtTime: currentPrice, amount: 0 },
   };
 }
 
@@ -254,13 +270,26 @@ export function calculateBillingSummary(
   month: number, // 0-indexed
   data: MealTrackerData,
   payments: PaymentRecord[],
-  usePreviousAdvance: boolean = true
+  usePreviousAdvance: boolean = true,
+  currentMealPrice: number = DEFAULT_MEAL_PRICE
 ): BillingSummary {
   const monthKey = formatMonthKey(year, month);
   const stats = calculateMonthStats(year, month, data);
-
   const totalMeals = stats.totalReceived;
-  const monthlyBill = totalMeals * FIXED_MEAL_RATE;
+
+  // Sum actual meal amounts for current month
+  const dates = getDatesInMonth(year, month);
+  let monthlyBill = 0;
+  dates.forEach((d) => {
+    const key = formatDateKey(d);
+    const rec = getDayRecord(data, key, currentMealPrice);
+    (['breakfast', 'lunch', 'dinner'] as MealType[]).forEach((mealKey) => {
+      const entry = rec[mealKey];
+      if (entry.received) {
+        monthlyBill += entry.amount ?? entry.rateAtTime ?? currentMealPrice;
+      }
+    });
+  });
 
   // Payments for current month
   const monthPayments = payments.filter((p) => p.monthKey === monthKey);
@@ -274,9 +303,19 @@ export function calculateBillingSummary(
     const prevYear = parseInt(prevYearStr, 10);
     const prevMonth = parseInt(prevMonthStr, 10) - 1; // Convert to 0-indexed
 
-    const prevStats = calculateMonthStats(prevYear, prevMonth, data);
-    const prevMeals = prevStats.totalReceived;
-    const prevBill = prevMeals * FIXED_MEAL_RATE;
+    const prevDates = getDatesInMonth(prevYear, prevMonth);
+    let prevBill = 0;
+    prevDates.forEach((d) => {
+      const key = formatDateKey(d);
+      const rec = getDayRecord(data, key, currentMealPrice);
+      (['breakfast', 'lunch', 'dinner'] as MealType[]).forEach((mealKey) => {
+        const entry = rec[mealKey];
+        if (entry.received) {
+          prevBill += entry.amount ?? entry.rateAtTime ?? currentMealPrice;
+        }
+      });
+    });
+
     const prevPayments = payments.filter((p) => p.monthKey === prevKey);
     const prevPaid = prevPayments.reduce((sum, p) => sum + p.amount, 0);
 
@@ -313,7 +352,7 @@ export function calculateBillingSummary(
   const averageDailyExpense = Math.round(monthlyBill / daysCount);
 
   return {
-    fixedRate: FIXED_MEAL_RATE,
+    fixedRate: currentMealPrice,
     totalMeals,
     monthlyBill,
     totalPaid,
@@ -333,15 +372,23 @@ export function exportMonthCSV(
   year: number,
   month: number,
   data: MealTrackerData,
-  payments: PaymentRecord[],
-  settings: MessSettings
+  settings: MessSettings,
+  payments: PaymentRecord[]
 ): void {
+  const currentPrice = settings.mealPrice || DEFAULT_MEAL_PRICE;
   const dates = getDatesInMonth(year, month);
   const monthName = new Date(year, month, 1).toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric',
   });
-  const billing = calculateBillingSummary(year, month, data, payments, settings.usePreviousAdvance);
+  const billing = calculateBillingSummary(
+    year,
+    month,
+    data,
+    payments,
+    settings.usePreviousAdvance,
+    currentPrice
+  );
 
   const headers = [
     'Date',
@@ -361,14 +408,17 @@ export function exportMonthCSV(
 
   dates.forEach((d) => {
     const dateKey = formatDateKey(d);
-    const record = getDayRecord(data, dateKey);
+    const record = getDayRecord(data, dateKey, currentPrice);
 
-    const mealCount =
-      (record.breakfast.received ? 1 : 0) +
-      (record.lunch.received ? 1 : 0) +
-      (record.dinner.received ? 1 : 0);
-
-    const dailyCost = mealCount * FIXED_MEAL_RATE;
+    let mealCount = 0;
+    let dailyCost = 0;
+    (['breakfast', 'lunch', 'dinner'] as MealType[]).forEach((mealKey) => {
+      const entry = record[mealKey];
+      if (entry.received) {
+        mealCount++;
+        dailyCost += entry.amount ?? entry.rateAtTime ?? currentPrice;
+      }
+    });
 
     // Check if there were payments on this exact date
     const datePayments = payments.filter((p) => p.date === dateKey);
@@ -379,7 +429,7 @@ export function exportMonthCSV(
       formatStringDateToIndian(dateKey),
       getShortDayName(d),
       `${mealCount}`,
-      `₹${FIXED_MEAL_RATE}`,
+      `₹${currentPrice}`,
       `₹${dailyCost}`,
       dayPaidTotal > 0 ? `₹${dayPaidTotal}` : '—',
       dayPayMethods || '—',
@@ -396,7 +446,7 @@ export function exportMonthCSV(
     'MONTHLY SUMMARY',
     '',
     `Total Meals: ${billing.totalMeals}`,
-    `Rate: ₹${FIXED_MEAL_RATE}`,
+    `Current Device Rate: ₹${currentPrice}`,
     `Total Bill: ₹${billing.monthlyBill}`,
     `Paid: ₹${billing.totalPaid}`,
     `Prev Advance: ₹${billing.previousAdvance}`,
@@ -430,10 +480,11 @@ export function exportBackupJSON(
   payments: PaymentRecord[],
   settings: MessSettings
 ): void {
+  const currentPrice = settings.mealPrice || DEFAULT_MEAL_PRICE;
   const backupObj = {
     app: 'My Mess Tracker',
-    version: 2,
-    ratePerMeal: FIXED_MEAL_RATE,
+    version: 3,
+    ratePerMeal: currentPrice,
     exportedAt: new Date().toISOString(),
     mealRecords: data,
     payments: payments,

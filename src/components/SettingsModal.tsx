@@ -1,6 +1,18 @@
 import React, { useState, useRef } from 'react';
-import { MessSettings, FIXED_MEAL_RATE } from '../types';
-import { X, Clock, Download, Upload, Trash2, Save, AlertTriangle, Building, FileJson } from 'lucide-react';
+import { MessSettings, DEFAULT_MEAL_PRICE } from '../types';
+import {
+  X,
+  Clock,
+  Download,
+  Upload,
+  Trash2,
+  Save,
+  AlertTriangle,
+  Building,
+  FileJson,
+  IndianRupee,
+  CheckCircle2,
+} from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -24,13 +36,55 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onRequestResetData,
 }) => {
   const [form, setForm] = useState<MessSettings>(settings);
+  const [priceInput, setPriceInput] = useState<string>(
+    String(settings.mealPrice ?? DEFAULT_MEAL_PRICE)
+  );
+  const [priceError, setPriceError] = useState<string | null>(null);
+  const [priceSuccess, setPriceSuccess] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   if (!isOpen) return null;
 
+  const validateAndParsePrice = (valStr: string): number | null => {
+    if (!valStr.trim()) {
+      setPriceError('Please enter a meal price amount.');
+      return null;
+    }
+    const num = parseFloat(valStr);
+    if (isNaN(num)) {
+      setPriceError('Please enter a valid numeric amount.');
+      return null;
+    }
+    if (num <= 0) {
+      setPriceError('Meal price must be greater than ₹0.');
+      return null;
+    }
+    setPriceError(null);
+    return num;
+  };
+
+  const handleSavePriceOnly = () => {
+    const validPrice = validateAndParsePrice(priceInput);
+    if (validPrice === null) return;
+
+    const updatedSettings = { ...form, mealPrice: validPrice };
+    setForm(updatedSettings);
+    onSaveSettings(updatedSettings);
+    setPriceSuccess(`Meal price updated to ₹${validPrice} / meal.`);
+
+    setTimeout(() => {
+      setPriceSuccess(null);
+    }, 4000);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSaveSettings(form);
+    const validPrice = validateAndParsePrice(priceInput);
+    if (validPrice === null) return;
+
+    const updatedSettings = { ...form, mealPrice: validPrice };
+    onSaveSettings(updatedSettings);
     onClose();
   };
 
@@ -68,12 +122,65 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto">
-          {/* Rate Notice */}
-          <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-200">Fixed Meal Rate:</span>
-            <span className="font-black text-emerald-400 text-sm px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
-              ₹{FIXED_MEAL_RATE} / meal
-            </span>
+          {/* Meal Price Section */}
+          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <IndianRupee className="w-4 h-4 text-emerald-400" />
+                Meal Price (Per Meal)
+              </label>
+              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                Current: ₹{form.mealPrice ?? DEFAULT_MEAL_PRICE}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-400">
+              Set your device's individual price per meal. New meals marked will use this price. Past entries keep their original recorded price.
+            </p>
+
+            <div className="flex gap-2 items-center">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  step="any"
+                  min="0.1"
+                  value={priceInput}
+                  onChange={(e) => {
+                    setPriceInput(e.target.value);
+                    if (priceError) setPriceError(null);
+                  }}
+                  placeholder="e.g. 44, 50, 60"
+                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-7 pr-3 py-2 text-sm font-black text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSavePriceOnly}
+                className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shrink-0 transition-colors cursor-pointer"
+              >
+                Save Price
+              </button>
+            </div>
+
+            {/* Price Validation Error */}
+            {priceError && (
+              <p className="text-xs font-semibold text-rose-400 flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                {priceError}
+              </p>
+            )}
+
+            {/* Price Success Feedback */}
+            {priceSuccess && (
+              <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {priceSuccess}
+              </p>
+            )}
           </div>
 
           {/* Mess Name */}

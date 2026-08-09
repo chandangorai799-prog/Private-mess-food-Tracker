@@ -1,6 +1,6 @@
 import React from 'react';
-import { BillingSummary, MonthStats, FIXED_MEAL_RATE } from '../types';
-import { Utensils, IndianRupee, CreditCard, ShieldCheck, TrendingUp, AlertCircle } from 'lucide-react';
+import { BillingSummary, MonthStats } from '../types';
+import { Utensils, IndianRupee, CreditCard } from 'lucide-react';
 
 interface DashboardStatsProps {
   stats: MonthStats;
@@ -15,7 +15,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
   todayMealsCount,
   monthName,
 }) => {
-  const todayCost = todayMealsCount * FIXED_MEAL_RATE;
+  const currentRate = billing.fixedRate;
+  const todayCost = todayMealsCount * currentRate;
 
   const statusColorMap = {
     UNPAID: 'bg-red-500/10 text-red-400 border-red-500/30',
@@ -40,7 +41,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
             <span className="text-xs font-semibold text-slate-400">({todayMealsCount} {todayMealsCount === 1 ? 'meal' : 'meals'})</span>
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-            ₹{FIXED_MEAL_RATE} / meal
+            ₹{currentRate} / meal
           </p>
         </div>
       </div>
@@ -58,7 +59,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
             ₹{billing.monthlyBill}
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-            {billing.totalMeals} meals × ₹{FIXED_MEAL_RATE}
+            {billing.totalMeals} meals • Rate: ₹{currentRate}/meal
           </p>
         </div>
       </div>

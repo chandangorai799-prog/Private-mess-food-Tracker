@@ -1,13 +1,14 @@
 export type MealType = 'breakfast' | 'lunch' | 'dinner';
 
-export const FIXED_MEAL_RATE = 44; // ₹44 per meal
+export const DEFAULT_MEAL_PRICE = 44; // Default ₹44 per meal fallback
+export const FIXED_MEAL_RATE = 44;   // Legacy alias fallback
 
 export interface MealEntry {
   received: boolean;
   markedAt?: string; // Formatted timestamp like "8:12 AM"
   markedTimestamp?: number; // Epoch timestamp
-  amount?: number;       // ₹44
-  rateAtTime?: number;   // ₹44
+  amount?: number;       // Actual cost for this meal (e.g. 44, 50, etc)
+  rateAtTime?: number;   // Active rate when marked
 }
 
 export interface DayRecord {
@@ -36,9 +37,9 @@ export interface PaymentRecord {
 export type PaymentStatus = 'UNPAID' | 'PARTIALLY PAID' | 'PAID' | 'PAID + ADVANCE';
 
 export interface BillingSummary {
-  fixedRate: number; // 44
+  fixedRate: number; // Current active device meal rate
   totalMeals: number;
-  monthlyBill: number; // totalMeals * 44
+  monthlyBill: number; // Sum of actual meal amounts for the month
   totalPaid: number;
   previousAdvance: number;
   effectivePaid: number;
@@ -55,6 +56,7 @@ export interface MessSettings {
   userName?: string;
   messName?: string;
   usePreviousAdvance?: boolean;
+  mealPrice?: number;    // Independent device meal price (e.g. 44, 50, 60)
 }
 
 export type DateStatus = 'past' | 'today' | 'future';

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { DayRecord, MealType, MessSettings, FIXED_MEAL_RATE } from '../types';
+import { DayRecord, MealType, MessSettings, DEFAULT_MEAL_PRICE } from '../types';
 import {
   formatDateKey,
   format12HourTime,
@@ -20,6 +20,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
   onToggleMeal,
 }) => {
   const dateKey = formatDateKey(todayDate);
+  const activeRate = settings.mealPrice && settings.mealPrice > 0 ? settings.mealPrice : DEFAULT_MEAL_PRICE;
 
   const formattedDate = todayDate.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -37,9 +38,12 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
     (todayRecord.lunch.received ? 1 : 0) +
     (todayRecord.dinner.received ? 1 : 0);
 
-  const todayCost = todayMealsCount * FIXED_MEAL_RATE;
+  const todayCost =
+    (todayRecord.breakfast.received ? (todayRecord.breakfast.amount ?? todayRecord.breakfast.rateAtTime ?? activeRate) : 0) +
+    (todayRecord.lunch.received ? (todayRecord.lunch.amount ?? todayRecord.lunch.rateAtTime ?? activeRate) : 0) +
+    (todayRecord.dinner.received ? (todayRecord.dinner.amount ?? todayRecord.dinner.rateAtTime ?? activeRate) : 0);
 
-  // Handler for prominent "+ ADD MEAL ₹44" button
+  // Handler for prominent "+ ADD MEAL ₹X" button
   const handleQuickAddMeal = () => {
     if (debounceRef.current) return;
     debounceRef.current = true;
@@ -56,13 +60,13 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
     } else if (!todayRecord.dinner.received) {
       targetMeal = 'dinner';
     } else {
-      // If all 3 are recorded, toggle dinner or toggle first available
+      // If all 3 are recorded, toggle dinner
       targetMeal = 'dinner';
     }
 
     onToggleMeal(dateKey, targetMeal);
     setLastToggledMeal(targetMeal);
-    setToastMessage(`Meal added — ₹${FIXED_MEAL_RATE} added to today's bill.`);
+    setToastMessage(`Meal added — ₹${activeRate} added to today's bill.`);
 
     // Auto dismiss toast after 4 seconds
     setTimeout(() => {
@@ -134,7 +138,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
               Today's Record
             </span>
             <span className="text-xs font-extrabold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700/60">
-              ₹{FIXED_MEAL_RATE} / meal
+              ₹{activeRate} / meal
             </span>
           </div>
           <h2 className="text-base sm:text-lg font-bold text-white mt-1">
@@ -157,13 +161,14 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
         className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-sm uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
       >
         <Plus className="w-5 h-5 stroke-[3]" />
-        + ADD MEAL ₹{FIXED_MEAL_RATE}
+        + ADD MEAL ₹{activeRate}
       </button>
 
       {/* 3 Touch-Friendly Meal Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {mealsConfig.map((item) => {
           const isReceived = item.entry.received;
+          const mealCost = item.entry.amount ?? item.entry.rateAtTime ?? activeRate;
 
           return (
             <button
@@ -212,7 +217,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
                 {isReceived ? (
                   <div className="flex items-center justify-between w-full">
                     <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      ✓ ₹{FIXED_MEAL_RATE}
+                      ✓ ₹{mealCost}
                     </span>
                     {item.entry.markedAt && (
                       <span className="text-emerald-300/80 text-[11px] font-medium">
@@ -222,7 +227,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
                   </div>
                 ) : (
                   <span className="text-slate-400 font-medium group-hover:text-slate-200 transition-colors">
-                    Tap to add ₹{FIXED_MEAL_RATE}
+                    Tap to add ₹{activeRate}
                   </span>
                 )}
               </div>

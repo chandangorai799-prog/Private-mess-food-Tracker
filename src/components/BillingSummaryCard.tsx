@@ -1,6 +1,6 @@
 import React from 'react';
-import { BillingSummary, FIXED_MEAL_RATE, MessSettings } from '../types';
-import { IndianRupee, CheckCircle, AlertTriangle, ArrowRight, Wallet, Sparkles, TrendingUp } from 'lucide-react';
+import { BillingSummary, MessSettings } from '../types';
+import { IndianRupee, CheckCircle, AlertTriangle, Wallet, TrendingUp } from 'lucide-react';
 
 interface BillingSummaryCardProps {
   monthName: string;
@@ -38,7 +38,7 @@ export const BillingSummaryCard: React.FC<BillingSummaryCardProps> = ({
               Monthly Bill & Summary
             </h3>
             <p className="text-xs text-slate-400 font-medium">
-              {monthName} • Fixed Rate: <strong className="text-emerald-400">₹{FIXED_MEAL_RATE} / meal</strong>
+              {monthName} • Device Rate: <strong className="text-emerald-400">₹{billing.fixedRate} / meal</strong>
             </p>
           </div>
         </div>
@@ -60,7 +60,7 @@ export const BillingSummaryCard: React.FC<BillingSummaryCardProps> = ({
               ₹{billing.monthlyBill.toLocaleString('en-IN')}
             </div>
             <p className="text-xs text-slate-400 font-medium mt-1">
-              {billing.totalMeals} meals × ₹{FIXED_MEAL_RATE}
+              {billing.totalMeals} meals recorded
             </p>
           </div>
         </div>
