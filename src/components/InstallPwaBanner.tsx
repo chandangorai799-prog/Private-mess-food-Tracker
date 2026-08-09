@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Smartphone, X, Check, Share } from 'lucide-react';
+import { MessTrackerLogo } from './MessTrackerLogo';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -64,8 +65,8 @@ export const InstallPwaBanner: React.FC = () => {
     <>
       <div className="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-emerald-950/80 border border-emerald-500/30 rounded-2xl p-3.5 shadow-lg flex items-center justify-between gap-3 text-slate-100 my-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
-            <Smartphone className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex items-center justify-center shrink-0">
+            <MessTrackerLogo className="w-10 h-10" />
           </div>
           <div>
             <h4 className="text-xs font-bold text-white flex items-center gap-1.5">

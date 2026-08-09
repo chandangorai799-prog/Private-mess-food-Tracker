@@ -1,5 +1,6 @@
 import React from 'react';
-import { Utensils, Settings, Download, Calendar } from 'lucide-react';
+import { Settings, Download } from 'lucide-react';
+import { MessTrackerLogo } from './MessTrackerLogo';
 
 interface HeaderProps {
   messName: string;
@@ -16,8 +17,8 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-30 bg-slate-900 text-white shadow-md border-b border-slate-800 px-4 py-3">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-            <Utensils className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex items-center justify-center shrink-0">
+            <MessTrackerLogo className="w-10 h-10" />
           </div>
           <div>
             <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-100">
