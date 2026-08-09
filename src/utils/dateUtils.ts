@@ -59,8 +59,17 @@ export function getMonthYearString(year: number, month: number): string {
 }
 
 /**
+ * Get month name from 0-indexed month number (e.g. 7 -> "August")
+ */
+export function getMonthName(monthIndex: number): string {
+  const date = new Date(2026, monthIndex, 1);
+  return date.toLocaleDateString('en-US', { month: 'long' });
+}
+
+/**
  * Format day display (e.g. "1 Aug")
  */
+
 export function formatShortDate(date: Date): string {
   return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 }
@@ -73,8 +82,45 @@ export function getShortDayName(date: Date): string {
 }
 
 /**
- * Check if given date is Today
+ * Format Date to YYYY-MM string (e.g. "2026-08")
  */
+export function formatMonthKey(year: number, month: number): string {
+  const m = String(month + 1).padStart(2, '0');
+  return `${year}-${m}`;
+}
+
+/**
+ * Get previous month key (e.g. "2026-08" -> "2026-07")
+ */
+export function getPreviousMonthKey(year: number, month: number): string {
+  if (month === 0) {
+    return `${year - 1}-12`;
+  }
+  const m = String(month).padStart(2, '0');
+  return `${year}-${m}`;
+}
+
+/**
+ * Format Date to Indian date display "09 Aug 2026"
+ */
+export function formatIndianDate(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0');
+  const monthStr = date.toLocaleDateString('en-US', { month: 'short' });
+  const year = date.getFullYear();
+  return `${day} ${monthStr} ${year}`;
+}
+
+/**
+ * Format date string "YYYY-MM-DD" to Indian date display "09 Aug 2026"
+ */
+export function formatStringDateToIndian(dateStr: string): string {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  return formatIndianDate(d);
+}
+
 export function isTodayDate(date: Date): boolean {
   const today = new Date();
   return (

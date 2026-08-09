@@ -9,27 +9,36 @@ import {
   MessSettings,
   MealType,
   DayRecord,
+  PaymentRecord,
 } from './types';
 import {
   loadMealData,
   saveMealData,
   loadSettings,
   saveSettings,
+  loadPaymentData,
+  savePaymentData,
   getDayRecord,
   calculateMonthStats,
+  calculateBillingSummary,
   exportMonthCSV,
+  exportBackupJSON,
+  restoreBackupJSON,
   clearData,
 } from './utils/storage';
 import {
   formatDateKey,
+  formatMonthKey,
+  getMonthName,
   getCurrentFormattedTime,
-  isTodayDate,
 } from './utils/dateUtils';
 
 import { Header } from './components/Header';
 import { MonthNavigator } from './components/MonthNavigator';
 import { DashboardStats } from './components/DashboardStats';
 import { TodayQuickAction } from './components/TodayQuickAction';
+import { BillingSummaryCard } from './components/BillingSummaryCard';
+import { PaymentSection } from './components/PaymentSection';
 import { MealTable } from './components/MealTable';
 import { StatsBreakdown } from './components/StatsBreakdown';
 import { SettingsModal } from './components/SettingsModal';
@@ -43,8 +52,9 @@ export default function App() {
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
 
-  // Meal Tracker Data & Settings State
+  // Meal Tracker Data, Payments & Settings State
   const [mealData, setMealData] = useState<MealTrackerData>(() => loadMealData());
+  const [payments, setPayments] = useState<PaymentRecord[]>(() => loadPaymentData());
   const [settings, setSettings] = useState<MessSettings>(() => loadSettings());
 
   // Modals state
@@ -61,6 +71,11 @@ export default function App() {
   useEffect(() => {
     saveMealData(mealData);
   }, [mealData]);
+
+  // Save payment data whenever it changes
+  useEffect(() => {
+    savePaymentData(payments);
+  }, [payments]);
 
   // Save settings whenever they change
   useEffect(() => {
@@ -119,18 +134,81 @@ export default function App() {
     });
   };
 
-  // Compute month statistics
+  // Clear an entire day's meal record
+  const handleClearDayRecord = (dateKey: string) => {
+    setMealData((prevData) => {
+      const next = { ...prevData };
+      delete next[dateKey];
+      return next;
+    });
+  };
+
+  // Payment Handlers
+  const handleAddPayment = (payment: Omit<PaymentRecord, 'id' | 'createdAt'>) => {
+    const newRecord: PaymentRecord = {
+      ...payment,
+      id: `pay_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      createdAt: Date.now(),
+    };
+    setPayments((prev) => [newRecord, ...prev]);
+  };
+
+  const handleEditPayment = (updated: PaymentRecord) => {
+    setPayments((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  };
+
+  const handleDeletePayment = (paymentId: string) => {
+    setPayments((prev) => prev.filter((p) => p.id !== paymentId));
+  };
+
+  const handleTogglePreviousAdvance = (useAdv: boolean) => {
+    setSettings((prev) => ({ ...prev, usePreviousAdvance: useAdv }));
+  };
+
+  // Compute month statistics & billing summaries
   const stats = useMemo(() => {
     return calculateMonthStats(selectedYear, selectedMonth, mealData);
   }, [selectedYear, selectedMonth, mealData]);
 
+  const billing = useMemo(() => {
+    return calculateBillingSummary(
+      selectedYear,
+      selectedMonth,
+      mealData,
+      payments,
+      settings.usePreviousAdvance ?? true
+    );
+  }, [selectedYear, selectedMonth, mealData, payments, settings.usePreviousAdvance]);
+
   // Today's Record
   const todayKey = formatDateKey(today);
   const todayRecord = getDayRecord(mealData, todayKey);
+  const todayMealsCount =
+    (todayRecord.breakfast.received ? 1 : 0) +
+    (todayRecord.lunch.received ? 1 : 0) +
+    (todayRecord.dinner.received ? 1 : 0);
 
-  // Handle CSV export
+  const monthNameStr = getMonthName(selectedMonth).toUpperCase();
+
+  // Export/Import Handlers
   const handleExportCSV = () => {
-    exportMonthCSV(selectedYear, selectedMonth, mealData, settings);
+    exportMonthCSV(selectedYear, selectedMonth, mealData, settings, payments);
+  };
+
+  const handleExportJSON = () => {
+    exportBackupJSON(mealData, payments, settings);
+  };
+
+  const handleRestoreJSON = (jsonStr: string) => {
+    const res = restoreBackupJSON(jsonStr);
+    if (res.success && res.mealData && res.payments) {
+      setMealData(res.mealData);
+      setPayments(res.payments);
+      if (res.settings) setSettings(res.settings);
+      alert('Data restored successfully!');
+    } else {
+      alert(`Data restore failed: ${res.error || 'Invalid file structure'}`);
+    }
   };
 
   // Handle data reset confirmation
@@ -141,6 +219,14 @@ export default function App() {
       selectedMonth
     );
     setMealData(updated);
+
+    if (confirmReset.allData) {
+      setPayments([]);
+    } else {
+      const currentMonthKey = formatMonthKey(selectedYear, selectedMonth);
+      setPayments((prev) => prev.filter((p) => p.monthKey !== currentMonthKey));
+    }
+
     setConfirmReset({ isOpen: false, allData: false });
   };
 
@@ -154,7 +240,7 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-4 py-4 space-y-4">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-4 py-4 space-y-5">
         {/* PWA Install Banner */}
         <InstallPwaBanner />
 
@@ -169,15 +255,38 @@ export default function App() {
           isCurrentMonthSelected={isCurrentMonthSelected}
         />
 
-        {/* Top Summary Stats */}
-        <DashboardStats stats={stats} />
+        {/* Top Summary Dashboard Stats */}
+        <DashboardStats
+          stats={stats}
+          billing={billing}
+          todayMealsCount={todayMealsCount}
+          monthName={monthNameStr}
+        />
 
-        {/* Today's Quick Action Bar (Only shown if current month is active or if user jumps) */}
+        {/* Today's Quick Action Bar */}
         <TodayQuickAction
           todayDate={today}
           todayRecord={todayRecord}
           settings={settings}
           onToggleMeal={handleToggleMeal}
+        />
+
+        {/* Monthly Bill & Financial Summary Card */}
+        <BillingSummaryCard
+          monthName={`${monthNameStr} ${selectedYear}`}
+          billing={billing}
+          settings={settings}
+          onTogglePreviousAdvance={handleTogglePreviousAdvance}
+        />
+
+        {/* Payment Record & History Section */}
+        <PaymentSection
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          payments={payments}
+          onAddPayment={handleAddPayment}
+          onEditPayment={handleEditPayment}
+          onDeletePayment={handleDeletePayment}
         />
 
         {/* Monthly Food Record Table / Calendar */}
@@ -187,6 +296,7 @@ export default function App() {
           data={mealData}
           settings={settings}
           onToggleMeal={handleToggleMeal}
+          onClearDayRecord={handleClearDayRecord}
         />
 
         {/* Detailed Breakdown & Meal Attendance Stats */}
@@ -196,7 +306,7 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-400">
         <p>
-          Private Mess Food Tracking System • Saved securely in Browser Storage
+          My Mess Tracker • ₹44 Fixed Rate per Meal • Offline PWA
         </p>
       </footer>
 
@@ -207,6 +317,8 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         onSaveSettings={(newSettings) => setSettings(newSettings)}
         onExportCSV={handleExportCSV}
+        onExportJSON={handleExportJSON}
+        onRestoreJSON={handleRestoreJSON}
         onRequestResetData={(allData) =>
           setConfirmReset({ isOpen: true, allData })
         }
@@ -217,18 +329,21 @@ export default function App() {
         isOpen={confirmReset.isOpen}
         title={
           confirmReset.allData
-            ? 'Clear ALL Mess Records?'
+            ? 'Clear ALL Mess Records & Payments?'
             : 'Reset Current Month Data?'
         }
         message={
           confirmReset.allData
-            ? 'Are you sure you want to permanently delete ALL saved meal records across all months? This action cannot be undone.'
-            : 'Are you sure you want to clear all meal entries for this selected month? This action cannot be undone.'
+            ? 'Are you sure you want to permanently delete ALL saved meal records and payment entries across all months? This action cannot be undone.'
+            : 'Are you sure you want to clear all meal entries and payments for this selected month? This action cannot be undone.'
         }
-        confirmLabel={confirmReset.allData ? 'Clear Everything' : 'Reset Month'}
+        confirmText={confirmReset.allData ? 'Clear Everything' : 'Reset Month'}
+        cancelText="Cancel"
+        isDangerous={true}
         onConfirm={handleConfirmResetData}
         onCancel={() => setConfirmReset({ isOpen: false, allData: false })}
       />
     </div>
   );
 }
+

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { MealTrackerData, MealType, MessSettings, DayRecord } from '../types';
+import { MealTrackerData, MealType, MessSettings, DayRecord, FIXED_MEAL_RATE } from '../types';
 import { getDayRecord } from '../utils/storage';
 import {
   formatDateKey,
-  formatShortDate,
   getShortDayName,
   getDateStatus,
   isTodayDate,
   getDatesInMonth,
   format12HourTime,
+  formatStringDateToIndian,
 } from '../utils/dateUtils';
-import { Check, Filter, Search, Calendar, Info } from 'lucide-react';
+import { Check, Calendar, Trash2, Plus, Minus, Info } from 'lucide-react';
+import { ConfirmationModal } from './ConfirmationModal';
 
 interface MealTableProps {
   selectedYear: number;
@@ -18,6 +19,7 @@ interface MealTableProps {
   data: MealTrackerData;
   settings: MessSettings;
   onToggleMeal: (dateKey: string, meal: MealType) => void;
+  onClearDayRecord?: (dateKey: string) => void;
 }
 
 type FilterMode = 'all' | 'today' | 'pending' | 'completed';
@@ -28,8 +30,10 @@ export const MealTable: React.FC<MealTableProps> = ({
   data,
   settings,
   onToggleMeal,
+  onClearDayRecord,
 }) => {
   const [filter, setFilter] = useState<FilterMode>('all');
+  const [deletingDateKey, setDeletingDateKey] = useState<string | null>(null);
 
   const dates = getDatesInMonth(selectedYear, selectedMonth);
 
@@ -48,23 +52,55 @@ export const MealTable: React.FC<MealTableProps> = ({
     if (filter === 'today') return isToday;
     if (filter === 'completed') return totalReceived === 3;
     if (filter === 'pending') {
-      // Pending if date is past or today and totalReceived < 3
       return (status === 'past' || status === 'today') && totalReceived < 3;
     }
     return true; // 'all'
   });
 
+  // Calculate bottom total summary
+  let monthTotalMeals = 0;
+  dates.forEach((d) => {
+    const key = formatDateKey(d);
+    const rec = getDayRecord(data, key);
+    if (rec.breakfast.received) monthTotalMeals++;
+    if (rec.lunch.received) monthTotalMeals++;
+    if (rec.dinner.received) monthTotalMeals++;
+  });
+  const monthTotalBill = monthTotalMeals * FIXED_MEAL_RATE;
+
+  const handleIncrementMeals = (dateKey: string) => {
+    const rec = getDayRecord(data, dateKey);
+    if (!rec.breakfast.received) {
+      onToggleMeal(dateKey, 'breakfast');
+    } else if (!rec.lunch.received) {
+      onToggleMeal(dateKey, 'lunch');
+    } else if (!rec.dinner.received) {
+      onToggleMeal(dateKey, 'dinner');
+    }
+  };
+
+  const handleDecrementMeals = (dateKey: string) => {
+    const rec = getDayRecord(data, dateKey);
+    if (rec.dinner.received) {
+      onToggleMeal(dateKey, 'dinner');
+    } else if (rec.lunch.received) {
+      onToggleMeal(dateKey, 'lunch');
+    } else if (rec.breakfast.received) {
+      onToggleMeal(dateKey, 'breakfast');
+    }
+  };
+
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm overflow-hidden space-y-0">
       {/* Table Header & Controls */}
       <div className="p-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/80">
         <div>
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <Calendar className="w-4 h-4 text-emerald-400" />
-            Monthly Food Record
+            Daily Meal Record & Breakdown
           </h2>
           <p className="text-xs text-slate-400 font-medium">
-            Tap meal buttons to mark received or undo
+            Each meal = <strong className="text-emerald-400">₹{FIXED_MEAL_RATE}</strong> • Tap buttons to toggle or adjust
           </p>
         </div>
 
@@ -113,13 +149,13 @@ export const MealTable: React.FC<MealTableProps> = ({
         </div>
       </div>
 
-      {/* Main Responsive Table / List View */}
+      {/* Main Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[580px]">
+        <table className="w-full text-left border-collapse min-w-[620px]">
           <thead>
             <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              <th className="py-3 px-3 sm:px-4 w-24">Date</th>
-              <th className="py-3 px-2 w-16">Day</th>
+              <th className="py-3 px-3 sm:px-4 w-28">Date</th>
+              <th className="py-3 px-2 w-14">Day</th>
               <th className="py-3 px-2 text-center">
                 🍳 Breakfast
                 <span className="block text-[10px] text-slate-500 font-normal">
@@ -138,13 +174,14 @@ export const MealTable: React.FC<MealTableProps> = ({
                   {format12HourTime(settings.dinnerTime)}
                 </span>
               </th>
-              <th className="py-3 px-3 text-right w-20">Total</th>
+              <th className="py-3 px-3 text-right">Daily Cost</th>
+              <th className="py-3 px-2 text-center w-12"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60 text-sm">
             {filteredDates.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-400">
+                <td colSpan={7} className="py-8 text-center text-slate-400">
                   No dates match the selected filter.
                 </td>
               </tr>
@@ -155,7 +192,7 @@ export const MealTable: React.FC<MealTableProps> = ({
                 const isToday = isTodayDate(d);
                 const dateStatus = getDateStatus(d);
                 const dayName = getShortDayName(d);
-                const shortDateStr = formatShortDate(d);
+                const indianDateStr = formatStringDateToIndian(dateKey);
 
                 const isWeekend = dayName === 'Sat' || dayName === 'Sun';
 
@@ -163,6 +200,8 @@ export const MealTable: React.FC<MealTableProps> = ({
                   (record.breakfast.received ? 1 : 0) +
                   (record.lunch.received ? 1 : 0) +
                   (record.dinner.received ? 1 : 0);
+
+                const dailyCost = totalDayReceived * FIXED_MEAL_RATE;
 
                 return (
                   <tr
@@ -176,11 +215,11 @@ export const MealTable: React.FC<MealTableProps> = ({
                     }`}
                   >
                     {/* Date */}
-                    <td className="py-2.5 px-3 sm:px-4 font-bold text-white whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <span>{shortDateStr}</span>
+                    <td className="py-2.5 px-3 sm:px-4 font-bold text-white whitespace-nowrap text-xs">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-100">{indianDateStr}</span>
                         {isToday && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          <span className="inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 w-fit">
                             Today
                           </span>
                         )}
@@ -188,7 +227,7 @@ export const MealTable: React.FC<MealTableProps> = ({
                     </td>
 
                     {/* Day */}
-                    <td className="py-2.5 px-2 font-medium whitespace-nowrap">
+                    <td className="py-2.5 px-2 font-medium whitespace-nowrap text-xs">
                       <span
                         className={
                           isWeekend ? 'text-amber-400 font-semibold' : 'text-slate-400'
@@ -225,19 +264,57 @@ export const MealTable: React.FC<MealTableProps> = ({
                       />
                     </td>
 
-                    {/* Daily Total */}
-                    <td className="py-2.5 px-3 text-right font-bold whitespace-nowrap">
-                      <span
-                        className={`inline-block px-2 py-1 rounded-md text-xs font-bold ${
-                          totalDayReceived === 3
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : totalDayReceived > 0
-                            ? 'bg-slate-800 text-slate-300'
-                            : 'bg-slate-800/50 text-slate-500'
-                        }`}
-                      >
-                        {totalDayReceived} / 3
-                      </span>
+                    {/* Daily Cost & Counter */}
+                    <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Quick +/- Counter Controls */}
+                        <div className="flex items-center gap-0.5 bg-slate-950 rounded-lg border border-slate-800 p-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleDecrementMeals(dateKey)}
+                            disabled={totalDayReceived === 0}
+                            className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400"
+                            title="Decrease meal count"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="text-xs font-bold text-white px-1">
+                            {totalDayReceived}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleIncrementMeals(dateKey)}
+                            disabled={totalDayReceived === 3}
+                            className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400"
+                            title="Increase meal count"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        <div className="text-right min-w-[70px]">
+                          <span className="block text-xs font-black text-emerald-400">
+                            ₹{dailyCost}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {totalDayReceived} × ₹{FIXED_MEAL_RATE}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Delete Day Action */}
+                    <td className="py-2 px-2 text-center">
+                      {totalDayReceived > 0 && onClearDayRecord && (
+                        <button
+                          type="button"
+                          onClick={() => setDeletingDateKey(dateKey)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
+                          title="Delete day meal record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -246,6 +323,40 @@ export const MealTable: React.FC<MealTableProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Bottom Summary Footer */}
+      <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm font-bold text-slate-200">
+        <div className="flex items-center gap-2">
+          <span>Month Total Meals:</span>
+          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-extrabold text-sm">
+            {monthTotalMeals} Meals
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span>Total Month Bill:</span>
+          <span className="px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black text-base shadow-sm">
+            {monthTotalMeals} × ₹{FIXED_MEAL_RATE} = ₹{monthTotalBill.toLocaleString('en-IN')}
+          </span>
+        </div>
+      </div>
+
+      {/* Delete Record Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deletingDateKey !== null}
+        title="Delete Meal Record?"
+        message={`Are you sure you want to delete the meal record for ${deletingDateKey ? formatStringDateToIndian(deletingDateKey) : ''}? This will reset daily meals to 0 and recalculate your bill.`}
+        confirmText="Yes, Delete Record"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={() => {
+          if (deletingDateKey && onClearDayRecord) {
+            onClearDayRecord(deletingDateKey);
+            setDeletingDateKey(null);
+          }
+        }}
+        onCancel={() => setDeletingDateKey(null)}
+      />
     </div>
   );
 };
@@ -266,25 +377,26 @@ const MealCellButton: React.FC<MealCellButtonProps> = ({
     <button
       onClick={onToggle}
       type="button"
-      className={`w-full py-2 px-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 min-h-[42px] select-none ${
+      className={`w-full py-2 px-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1 transition-all active:scale-95 min-h-[40px] select-none cursor-pointer ${
         isReceived
           ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-950/50'
           : 'bg-slate-800/80 hover:bg-slate-700/80 border-slate-700/80 text-slate-400 hover:text-slate-200'
       }`}
       title={
         isReceived
-          ? `Received${entry.markedAt ? ` at ${entry.markedAt}` : ''}. Click to undo.`
-          : 'Mark as Received'
+          ? `Received (₹${FIXED_MEAL_RATE}). Click to remove.`
+          : `Mark Received (+₹${FIXED_MEAL_RATE})`
       }
     >
       {isReceived ? (
         <>
-          <Check className="w-4 h-4 stroke-[3]" />
-          <span>✓</span>
+          <Check className="w-3.5 h-3.5 stroke-[3]" />
+          <span>₹{FIXED_MEAL_RATE}</span>
         </>
       ) : (
-        <span className="text-slate-400">—</span>
+        <span className="text-slate-500">—</span>
       )}
     </button>
   );
 };
+

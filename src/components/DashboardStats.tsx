@@ -1,88 +1,120 @@
 import React from 'react';
-import { MonthStats } from '../types';
-import { CheckCircle2, Clock, CalendarCheck, Percent, Sparkles } from 'lucide-react';
+import { BillingSummary, MonthStats, FIXED_MEAL_RATE } from '../types';
+import { Utensils, IndianRupee, CreditCard, ShieldCheck, TrendingUp, AlertCircle } from 'lucide-react';
 
 interface DashboardStatsProps {
   stats: MonthStats;
+  billing: BillingSummary;
+  todayMealsCount: number;
+  monthName: string;
 }
 
-export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats }) => {
+export const DashboardStats: React.FC<DashboardStatsProps> = ({
+  stats,
+  billing,
+  todayMealsCount,
+  monthName,
+}) => {
+  const todayCost = todayMealsCount * FIXED_MEAL_RATE;
+
+  const statusColorMap = {
+    UNPAID: 'bg-red-500/10 text-red-400 border-red-500/30',
+    'PARTIALLY PAID': 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+    PAID: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+    'PAID + ADVANCE': 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+  };
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {/* Total Scheduled */}
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Today's Meals & Cost */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between text-slate-400 mb-1">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Scheduled</span>
-          <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
-            <CalendarCheck className="w-4 h-4" />
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Today</span>
+          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <Utensils className="w-4 h-4" />
           </div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-white tracking-tight">
-            {stats.totalScheduled}
+          <div className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-baseline gap-1">
+            <span>₹{todayCost}</span>
+            <span className="text-xs font-semibold text-slate-400">({todayMealsCount} {todayMealsCount === 1 ? 'meal' : 'meals'})</span>
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-            {stats.daysInMonth} days × 3 meals
+            ₹{FIXED_MEAL_RATE} / meal
           </p>
         </div>
       </div>
 
-      {/* Received */}
-      <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-        <div className="flex items-center justify-between text-emerald-400 mb-1">
-          <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Received</span>
-          <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
-            <CheckCircle2 className="w-4 h-4" />
+      {/* Current Month Bill */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
+        <div className="flex items-center justify-between text-slate-400 mb-1">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{monthName} Bill</span>
+          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <IndianRupee className="w-4 h-4" />
           </div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-emerald-400 tracking-tight">
-            {stats.totalReceived}
-          </div>
-          <p className="text-[11px] text-emerald-300/80 font-medium mt-0.5">
-            Marked as eaten
-          </p>
-        </div>
-      </div>
-
-      {/* Pending (Past & Today) */}
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-        <div className="flex items-center justify-between text-amber-400 mb-1">
-          <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Pending</span>
-          <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
-            <Clock className="w-4 h-4" />
-          </div>
-        </div>
-        <div>
-          <div className="text-2xl font-bold text-amber-400 tracking-tight">
-            {stats.totalPending}
+          <div className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+            ₹{billing.monthlyBill}
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-            Elapsed unreceived
+            {billing.totalMeals} meals × ₹{FIXED_MEAL_RATE}
           </p>
         </div>
       </div>
 
-      {/* Completion Rate */}
-      <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-        <div className="flex items-center justify-between text-indigo-400 mb-1">
-          <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Completion</span>
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
-            <Percent className="w-4 h-4" />
+      {/* Total Paid */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
+        <div className="flex items-center justify-between text-slate-400 mb-1">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Paid</span>
+          <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400">
+            <CreditCard className="w-4 h-4" />
           </div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-indigo-300 tracking-tight">
-            {stats.completionRate}%
+          <div className="text-xl sm:text-2xl font-black text-sky-400 tracking-tight">
+            ₹{billing.effectivePaid}
           </div>
-          <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-300"
-              style={{ width: `${stats.completionRate}%` }}
-            />
+          <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+            {billing.previousAdvance > 0 ? `Paid: ₹${billing.totalPaid} + Adv: ₹${billing.previousAdvance}` : 'All payments applied'}
+          </p>
+        </div>
+      </div>
+
+      {/* Remaining / Advance Balance & Status */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
+        <div className="flex items-center justify-between text-slate-400 mb-1">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            {billing.advanceBalance > 0 ? 'Advance Balance' : 'Remaining Due'}
+          </span>
+          <span
+            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border uppercase ${
+              statusColorMap[billing.status]
+            }`}
+          >
+            {billing.status}
+          </span>
+        </div>
+        <div>
+          <div
+            className={`text-xl sm:text-2xl font-black tracking-tight ${
+              billing.advanceBalance > 0
+                ? 'text-sky-400'
+                : billing.remainingBalance > 0
+                ? 'text-amber-400'
+                : 'text-emerald-400'
+            }`}
+          >
+            {billing.advanceBalance > 0
+              ? `+₹${billing.advanceBalance}`
+              : `₹${billing.remainingBalance}`}
           </div>
+          <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+            Avg Expense: ₹{billing.averageDailyExpense}/day
+          </p>
         </div>
       </div>
     </div>
   );
 };
+

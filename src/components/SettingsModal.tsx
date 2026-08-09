@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { MessSettings } from '../types';
-import { X, Clock, Download, Trash2, Save, AlertTriangle, Building } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { MessSettings, FIXED_MEAL_RATE } from '../types';
+import { X, Clock, Download, Upload, Trash2, Save, AlertTriangle, Building, FileJson } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -8,6 +8,8 @@ interface SettingsModalProps {
   onClose: () => void;
   onSaveSettings: (newSettings: MessSettings) => void;
   onExportCSV: () => void;
+  onExportJSON: () => void;
+  onRestoreJSON: (jsonStr: string) => void;
   onRequestResetData: (allData: boolean) => void;
 }
 
@@ -17,9 +19,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onSaveSettings,
   onExportCSV,
+  onExportJSON,
+  onRestoreJSON,
   onRequestResetData,
 }) => {
   const [form, setForm] = useState<MessSettings>(settings);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   if (!isOpen) return null;
 
@@ -27,6 +32,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     e.preventDefault();
     onSaveSettings(form);
     onClose();
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        onRestoreJSON(content);
+        onClose();
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -48,6 +68,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto">
+          {/* Rate Notice */}
+          <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-200">Fixed Meal Rate:</span>
+            <span className="font-black text-emerald-400 text-sm px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
+              ₹{FIXED_MEAL_RATE} / meal
+            </span>
+          </div>
+
           {/* Mess Name */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 flex items-center gap-1.5">
@@ -116,11 +144,42 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Data Export & Reset Actions */}
+          {/* Backup, Restore & Reset Actions */}
           <div className="pt-2 border-t border-slate-800 space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Data Management
+              Data Backup & Export
             </h4>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onExportJSON();
+                  onClose();
+                }}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <FileJson className="w-4 h-4 text-emerald-400" />
+                Backup Data
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Upload className="w-4 h-4 text-sky-400" />
+                Restore Data
+              </button>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".json"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
 
             <button
               type="button"
@@ -128,10 +187,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onExportCSV();
                 onClose();
               }}
-              className="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
             >
               <Download className="w-4 h-4 text-emerald-400" />
-              Export Selected Month as CSV
+              Export Monthly CSV Report
             </button>
 
             <button
@@ -140,7 +199,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onRequestResetData(false);
                 onClose();
               }}
-              className="w-full py-2.5 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
             >
               <Trash2 className="w-4 h-4 text-amber-400" />
               Reset Current Month Data
@@ -152,7 +211,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onRequestResetData(true);
                 onClose();
               }}
-              className="w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-2 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
             >
               <AlertTriangle className="w-4 h-4 text-rose-400" />
               Clear All Stored Records
@@ -181,3 +240,4 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     </div>
   );
 };
+
