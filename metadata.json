@@ -1,0 +1,6 @@
+{
+  "name": "Mess Food Tracker",
+  "description": "Mobile-first daily and monthly private mess meal tracking system with quick actions and stats",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
