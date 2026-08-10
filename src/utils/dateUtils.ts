@@ -11,25 +11,37 @@ export function formatDateKey(date: Date): string {
 }
 
 /**
- * Get current time string in 12-hour format with AM/PM (e.g. "8:12 AM")
+ * Get current time string in 12-hour format with AM/PM (e.g. "1:00 PM")
  */
 export function getCurrentFormattedTime(): string {
-  return new Date().toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const now = new Date();
+  let hours = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0 becomes 12
+  return `${hours}:${minutes} ${ampm}`;
 }
 
 /**
  * Format 24-hour time string ("13:00") to 12-hour string ("1:00 PM")
  */
-export function format12HourTime(time24: string): string {
-  if (!time24) return '';
-  const [hoursStr, minutesStr] = time24.split(':');
-  let hours = parseInt(hoursStr, 10);
-  const minutes = minutesStr || '00';
-  if (isNaN(hours)) return time24;
+export function format12HourTime(timeStr?: string): string {
+  if (!timeStr) return '';
+  const trimmed = timeStr.trim();
+  if (
+    trimmed.includes('AM') ||
+    trimmed.includes('PM') ||
+    trimmed.includes('am') ||
+    trimmed.includes('pm')
+  ) {
+    return trimmed;
+  }
+  const parts = trimmed.split(':');
+  if (parts.length < 2) return timeStr;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1].slice(0, 2) || '00';
+  if (isNaN(hours)) return timeStr;
 
   const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12;

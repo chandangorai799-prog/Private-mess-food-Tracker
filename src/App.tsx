@@ -11,6 +11,7 @@ import {
   DayRecord,
   PaymentRecord,
   DEFAULT_MEAL_PRICE,
+  ThemePalette,
 } from './types';
 import {
   loadMealData,
@@ -27,6 +28,7 @@ import {
   restoreBackupJSON,
   clearData,
 } from './utils/storage';
+import { exportMonthPDF } from './utils/pdfGenerator';
 import {
   formatDateKey,
   formatMonthKey,
@@ -43,11 +45,12 @@ import { PaymentSection } from './components/PaymentSection';
 import { MealTable } from './components/MealTable';
 import { StatsBreakdown } from './components/StatsBreakdown';
 import { SettingsModal } from './components/SettingsModal';
+import { ThemeSelectorModal } from './components/ThemeSelectorModal';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { InstallPwaBanner } from './components/InstallPwaBanner';
 
 export default function App() {
-  const today = useMemo(() => new Date(), []);
+  const [today] = useState(() => new Date());
 
   // Active Year and Month state
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
@@ -60,6 +63,7 @@ export default function App() {
 
   // Modals state
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState<boolean>(false);
   const [confirmReset, setConfirmReset] = useState<{
     isOpen: boolean;
     allData: boolean;
@@ -67,6 +71,12 @@ export default function App() {
     isOpen: false,
     allData: false,
   });
+
+  // Apply theme to document element
+  useEffect(() => {
+    const currentTheme = settings.theme || 'emerald';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }, [settings.theme]);
 
   // Save meal data whenever it changes
   useEffect(() => {
@@ -220,6 +230,10 @@ export default function App() {
     exportMonthCSV(selectedYear, selectedMonth, mealData, settings, payments);
   };
 
+  const handleExportPDF = () => {
+    exportMonthPDF(selectedYear, selectedMonth, mealData, settings, payments);
+  };
+
   const handleExportJSON = () => {
     exportBackupJSON(mealData, payments, settings);
   };
@@ -256,12 +270,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
       {/* Top Sticky Header */}
       <Header
         messName={settings.messName || 'Private Mess Tracker'}
+        activeTheme={settings.theme || 'emerald'}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenThemeSelector={() => setIsThemeSelectorOpen(true)}
         onExportCSV={handleExportCSV}
+        onExportPDF={handleExportPDF}
       />
 
       {/* Main Container */}
@@ -322,6 +339,8 @@ export default function App() {
           settings={settings}
           onToggleMeal={handleToggleMeal}
           onClearDayRecord={handleClearDayRecord}
+          onExportPDF={handleExportPDF}
+          onExportCSV={handleExportCSV}
         />
 
         {/* Detailed Breakdown & Meal Attendance Stats */}
@@ -329,11 +348,21 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-400">
+      <footer className="border-t border-slate-200/80 bg-white py-5 text-center text-xs font-semibold text-slate-500">
         <p>
-          My Mess Tracker • ₹44 Fixed Rate per Meal • Offline PWA
+          Smart Mess Management • ₹{activeMealPrice} Rate per Meal • Offline PWA
         </p>
       </footer>
+
+      {/* Theme Selector Modal */}
+      <ThemeSelectorModal
+        isOpen={isThemeSelectorOpen}
+        activeTheme={settings.theme || 'emerald'}
+        onSelectTheme={(newTheme) =>
+          setSettings((prev) => ({ ...prev, theme: newTheme }))
+        }
+        onClose={() => setIsThemeSelectorOpen(false)}
+      />
 
       {/* Settings Modal */}
       <SettingsModal
@@ -342,6 +371,7 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         onSaveSettings={(newSettings) => setSettings(newSettings)}
         onExportCSV={handleExportCSV}
+        onExportPDF={handleExportPDF}
         onExportJSON={handleExportJSON}
         onRestoreJSON={handleRestoreJSON}
         onRequestResetData={(allData) =>

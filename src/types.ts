@@ -49,6 +49,8 @@ export interface BillingSummary {
   averageDailyExpense: number;
 }
 
+export type ThemePalette = 'emerald' | 'sapphire' | 'sunset' | 'purple' | 'rose' | 'dark';
+
 export interface MessSettings {
   breakfastTime: string; // e.g. "08:00"
   lunchTime: string;     // e.g. "13:00"
@@ -57,6 +59,7 @@ export interface MessSettings {
   messName?: string;
   usePreviousAdvance?: boolean;
   mealPrice?: number;    // Independent device meal price (e.g. 44, 50, 60)
+  theme?: ThemePalette;  // Dynamic theme preference
 }
 
 export type DateStatus = 'past' | 'today' | 'future';

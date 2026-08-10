@@ -1,1 +1,136 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* ==========================================================
+   DYNAMIC THEME PALETTES
+   ========================================================== */
+
+/* 1. Emerald Fresh (Default) */
+:root, [data-theme="emerald"] {
+  --theme-bg: #f8fafc;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
+  --theme-card-bg: #ffffff;
+  --theme-border: rgba(226, 232, 240, 0.85);
+  --theme-text-primary: #0f172a;
+  --theme-text-secondary: #475569;
+  --theme-accent: #059669;
+  --theme-accent-hover: #047857;
+  --theme-accent-light: #ecfdf5;
+  --theme-accent-border: #a7f3d0;
+  --theme-badge-bg: #dcfce7;
+  --theme-badge-text: #15803d;
+}
+
+/* 2. Sapphire Blue */
+[data-theme="sapphire"] {
+  --theme-bg: #f0f4f9;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
+  --theme-card-bg: #ffffff;
+  --theme-border: rgba(203, 213, 225, 0.8);
+  --theme-text-primary: #0f172a;
+  --theme-text-secondary: #334155;
+  --theme-accent: #2563eb;
+  --theme-accent-hover: #1d4ed8;
+  --theme-accent-light: #eff6ff;
+  --theme-accent-border: #bfdbfe;
+  --theme-badge-bg: #dbeafe;
+  --theme-badge-text: #1e40af;
+}
+
+/* 3. Sunset Orange */
+[data-theme="sunset"] {
+  --theme-bg: #faf5f0;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
+  --theme-card-bg: #ffffff;
+  --theme-border: rgba(254, 215, 170, 0.7);
+  --theme-text-primary: #1c1917;
+  --theme-text-secondary: #44403c;
+  --theme-accent: #ea580c;
+  --theme-accent-hover: #c2410c;
+  --theme-accent-light: #fff7ed;
+  --theme-accent-border: #fed7aa;
+  --theme-badge-bg: #ffedd5;
+  --theme-badge-text: #c2410c;
+}
+
+/* 4. Royal Purple */
+[data-theme="purple"] {
+  --theme-bg: #f5f3ff;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
+  --theme-card-bg: #ffffff;
+  --theme-border: rgba(221, 214, 254, 0.8);
+  --theme-text-primary: #1e1b4b;
+  --theme-text-secondary: #3730a3;
+  --theme-accent: #7c3aed;
+  --theme-accent-hover: #6d28d9;
+  --theme-accent-light: #f5f3ff;
+  --theme-accent-border: #ddd6fe;
+  --theme-badge-bg: #ede9fe;
+  --theme-badge-text: #6d28d9;
+}
+
+/* 5. Rose Ruby */
+[data-theme="rose"] {
+  --theme-bg: #fff1f2;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
+  --theme-card-bg: #ffffff;
+  --theme-border: rgba(254, 205, 211, 0.8);
+  --theme-text-primary: #881337;
+  --theme-text-secondary: #9f1239;
+  --theme-accent: #e11d48;
+  --theme-accent-hover: #be123c;
+  --theme-accent-light: #fff1f2;
+  --theme-accent-border: #fecdd3;
+  --theme-badge-bg: #ffe4e6;
+  --theme-badge-text: #be123c;
+}
+
+/* 6. Dark Midnight (OLED) */
+[data-theme="dark"] {
+  --theme-bg: #0b0f19;
+  --theme-header-bg: rgba(15, 23, 42, 0.95);
+  --theme-card-bg: #111827;
+  --theme-border: #1f2937;
+  --theme-text-primary: #f9fafb;
+  --theme-text-secondary: #9ca3af;
+  --theme-accent: #10b981;
+  --theme-accent-hover: #059669;
+  --theme-accent-light: rgba(16, 185, 129, 0.12);
+  --theme-accent-border: rgba(16, 185, 129, 0.3);
+  --theme-badge-bg: rgba(16, 185, 129, 0.2);
+  --theme-badge-text: #34d399;
+}
+
+/* Custom Scrollbar for tables and filters */
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Touch active state feedback */
+.active-press {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.active-press:active {
+  transform: scale(0.97);
+}

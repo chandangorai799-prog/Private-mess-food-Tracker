@@ -4,7 +4,7 @@ import {
   formatDateKey,
   format12HourTime,
 } from '../utils/dateUtils';
-import { Check, Clock, Plus, RotateCcw, Utensils } from 'lucide-react';
+import { Check, Clock, Plus, RotateCcw, Utensils, Sparkles } from 'lucide-react';
 
 interface TodayQuickActionProps {
   todayDate: Date;
@@ -66,7 +66,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
 
     onToggleMeal(dateKey, targetMeal);
     setLastToggledMeal(targetMeal);
-    setToastMessage(`Meal added — ₹${activeRate} added to today's bill.`);
+    setToastMessage(`Meal logged — ₹${activeRate} added to today's bill.`);
 
     // Auto dismiss toast after 4 seconds
     setTimeout(() => {
@@ -86,6 +86,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
     type: MealType;
     label: string;
     icon: string;
+    bgAccent: string;
     timing: string;
     entry: DayRecord['breakfast'];
   }> = [
@@ -93,6 +94,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
       type: 'breakfast',
       label: 'Breakfast',
       icon: '🍳',
+      bgAccent: 'from-amber-50 to-orange-50/40 border-amber-200/80',
       timing: format12HourTime(settings.breakfastTime),
       entry: todayRecord.breakfast,
     },
@@ -100,6 +102,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
       type: 'lunch',
       label: 'Lunch',
       icon: '🍛',
+      bgAccent: 'from-emerald-50 to-teal-50/40 border-emerald-200/80',
       timing: format12HourTime(settings.lunchTime),
       entry: todayRecord.lunch,
     },
@@ -107,23 +110,24 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
       type: 'dinner',
       label: 'Dinner',
       icon: '🍽️',
+      bgAccent: 'from-indigo-50 to-slate-50/40 border-indigo-200/80',
       timing: format12HourTime(settings.dinnerTime),
       entry: todayRecord.dinner,
     },
   ];
 
   return (
-    <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-md space-y-4">
+    <section className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
       {/* Toast Notification with Undo */}
       {toastMessage && (
-        <div className="bg-emerald-950 border border-emerald-500/50 rounded-xl p-3 flex items-center justify-between text-slate-100 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-emerald-900 text-white rounded-xl p-3 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2">
-            <Utensils className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-bold text-emerald-200">{toastMessage}</span>
+            <Utensils className="w-4 h-4 text-emerald-300" />
+            <span className="text-xs font-bold text-emerald-100">{toastMessage}</span>
           </div>
           <button
             onClick={handleUndo}
-            className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-xs flex items-center gap-1 border border-emerald-500/40 transition-colors"
+            className="px-2.5 py-1 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-emerald-200 font-extrabold text-xs flex items-center gap-1 border border-emerald-600 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3 h-3" />
             UNDO
@@ -131,24 +135,26 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+      {/* Header Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Today's Record
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <Sparkles className="w-3 h-3 text-emerald-600" />
+              Today's Orders
             </span>
-            <span className="text-xs font-extrabold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700/60">
+            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/80">
               ₹{activeRate} / meal
             </span>
           </div>
-          <h2 className="text-base sm:text-lg font-bold text-white mt-1">
+          <h2 className="text-base sm:text-lg font-black text-slate-900 mt-1">
             {formattedDate}
           </h2>
         </div>
 
         <div className="text-right">
-          <span className="text-xs font-semibold text-slate-400 block">Today's Total</span>
-          <span className="text-lg font-black text-emerald-400">
+          <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">Today's Summary</span>
+          <span className="text-base sm:text-lg font-black text-emerald-700">
             {todayMealsCount} {todayMealsCount === 1 ? 'Meal' : 'Meals'} • ₹{todayCost}
           </span>
         </div>
@@ -158,13 +164,13 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
       <button
         type="button"
         onClick={handleQuickAddMeal}
-        className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-sm uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
+        className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
       >
         <Plus className="w-5 h-5 stroke-[3]" />
         + ADD MEAL ₹{activeRate}
       </button>
 
-      {/* 3 Touch-Friendly Meal Buttons */}
+      {/* 3 Touch-Friendly Food Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {mealsConfig.map((item) => {
           const isReceived = item.entry.received;
@@ -175,22 +181,30 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
               key={item.type}
               onClick={() => onToggleMeal(dateKey, item.type)}
               type="button"
-              className={`relative group text-left rounded-xl p-3.5 transition-all duration-200 border flex flex-col justify-between min-h-[100px] active:scale-[0.98] select-none cursor-pointer ${
+              className={`relative group text-left rounded-2xl p-4 transition-all duration-200 border flex flex-col justify-between min-h-[110px] active:scale-[0.98] select-none cursor-pointer ${
                 isReceived
-                  ? 'bg-emerald-900/40 border-emerald-500/50 text-white shadow-sm shadow-emerald-900/30'
-                  : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700/80 text-slate-200 hover:border-slate-600'
+                  ? 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white border-emerald-600 shadow-md shadow-emerald-500/20'
+                  : `bg-gradient-to-br ${item.bgAccent} hover:shadow-xs text-slate-800`
               }`}
             >
               {/* Top Header line inside button */}
               <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{item.icon}</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl drop-shadow-xs">{item.icon}</span>
                   <div>
-                    <span className="font-bold text-base block text-white leading-tight">
+                    <span
+                      className={`font-black text-base block leading-tight ${
+                        isReceived ? 'text-white' : 'text-slate-900'
+                      }`}
+                    >
                       {item.label}
                     </span>
-                    <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-slate-500" />
+                    <span
+                      className={`text-xs font-semibold flex items-center gap-1 mt-0.5 ${
+                        isReceived ? 'text-emerald-100' : 'text-slate-500'
+                      }`}
+                    >
+                      <Clock className="w-3 h-3 opacity-80" />
                       {item.timing}
                     </span>
                   </div>
@@ -198,36 +212,40 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
 
                 {/* Status Badge */}
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                     isReceived
-                      ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                      : 'bg-slate-700/80 text-slate-400 group-hover:bg-slate-600'
+                      ? 'bg-white text-emerald-700 shadow-md'
+                      : 'bg-white text-slate-400 border border-slate-200 group-hover:border-slate-300'
                   }`}
                 >
                   {isReceived ? (
-                    <Check className="w-4 h-4 stroke-[3]" />
+                    <Check className="w-5 h-5 stroke-[3]" />
                   ) : (
-                    <div className="w-3 h-3 rounded-full border-2 border-slate-400" />
+                    <div className="w-3 h-3 rounded-full border-2 border-slate-300" />
                   )}
                 </div>
               </div>
 
               {/* Bottom State Label */}
-              <div className="mt-2 pt-2 border-t border-slate-700/40 flex items-center justify-between text-xs">
+              <div
+                className={`mt-3 pt-2.5 border-t flex items-center justify-between text-xs ${
+                  isReceived ? 'border-emerald-400/40' : 'border-slate-200/80'
+                }`}
+              >
                 {isReceived ? (
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      ✓ ₹{mealCost}
+                    <span className="text-white font-extrabold flex items-center gap-1">
+                      ✓ Completed • ₹{mealCost}
                     </span>
                     {item.entry.markedAt && (
-                      <span className="text-emerald-300/80 text-[11px] font-medium">
-                        {item.entry.markedAt}
+                      <span className="text-emerald-100 text-[11px] font-bold">
+                        {format12HourTime(item.entry.markedAt)}
                       </span>
                     )}
                   </div>
                 ) : (
-                  <span className="text-slate-400 font-medium group-hover:text-slate-200 transition-colors">
-                    Tap to add ₹{activeRate}
+                  <span className="text-slate-500 font-bold group-hover:text-slate-900 transition-colors">
+                    Tap to mark • ₹{activeRate}
                   </span>
                 )}
               </div>
@@ -238,4 +256,5 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
     </section>
   );
 };
+
 

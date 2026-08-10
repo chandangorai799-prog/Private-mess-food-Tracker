@@ -32,6 +32,7 @@ export const DEFAULT_SETTINGS: MessSettings = {
   messName: 'Private Mess',
   usePreviousAdvance: true,
   mealPrice: DEFAULT_MEAL_PRICE,
+  theme: 'emerald',
 };
 
 /**

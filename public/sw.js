@@ -40,8 +40,16 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event - Stale-while-revalidate strategy with fallback to index.html for navigation
 self.addEventListener('fetch', (event) => {
-  // Ignore non-GET requests or chrome-extension URLs
-  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
+  // Ignore non-GET requests, extension URLs, or Vite dev server requests
+  const url = event.request.url;
+  if (
+    event.request.method !== 'GET' ||
+    !url.startsWith('http') ||
+    url.includes('/@vite/') ||
+    url.includes('/@fs/') ||
+    url.includes('node_modules') ||
+    url.includes('hot-update')
+  ) {
     return;
   }
 

@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { MessSettings, DEFAULT_MEAL_PRICE } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { MessSettings, DEFAULT_MEAL_PRICE, ThemePalette } from '../types';
+import { format12HourTime } from '../utils/dateUtils';
 import {
   X,
   Clock,
@@ -10,8 +11,11 @@ import {
   AlertTriangle,
   Building,
   FileJson,
+  FileText,
   IndianRupee,
   CheckCircle2,
+  Palette,
+  Check,
 } from 'lucide-react';
 
 interface SettingsModalProps {
@@ -20,10 +24,20 @@ interface SettingsModalProps {
   onClose: () => void;
   onSaveSettings: (newSettings: MessSettings) => void;
   onExportCSV: () => void;
+  onExportPDF: () => void;
   onExportJSON: () => void;
   onRestoreJSON: (jsonStr: string) => void;
   onRequestResetData: (allData: boolean) => void;
 }
+
+const THEME_ACCENTS: { id: ThemePalette; name: string; color: string; bg: string }[] = [
+  { id: 'emerald', name: 'Emerald', color: 'bg-emerald-600', bg: 'bg-emerald-50' },
+  { id: 'sapphire', name: 'Sapphire', color: 'bg-blue-600', bg: 'bg-blue-50' },
+  { id: 'sunset', name: 'Sunset', color: 'bg-orange-600', bg: 'bg-orange-50' },
+  { id: 'purple', name: 'Purple', color: 'bg-violet-600', bg: 'bg-violet-50' },
+  { id: 'rose', name: 'Rose', color: 'bg-rose-600', bg: 'bg-rose-50' },
+  { id: 'dark', name: 'Dark', color: 'bg-slate-900', bg: 'bg-slate-800' },
+];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
@@ -31,6 +45,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onSaveSettings,
   onExportCSV,
+  onExportPDF,
   onExportJSON,
   onRestoreJSON,
   onRequestResetData,
@@ -43,6 +58,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [priceSuccess, setPriceSuccess] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm(settings);
+      setPriceInput(String(settings.mealPrice ?? DEFAULT_MEAL_PRICE));
+      setPriceError(null);
+      setPriceSuccess(null);
+    }
+  }, [isOpen, settings]);
 
   if (!isOpen) return null;
 
@@ -104,17 +128,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-100 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white border border-slate-200/80 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-slate-800 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-emerald-400" />
-            <h3 className="font-bold text-base text-white">Mess Settings</h3>
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-700">
+              <Clock className="w-4 h-4" />
+            </div>
+            <h3 className="font-black text-lg text-slate-900">Mess Preferences</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -123,24 +149,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto">
           {/* Meal Price Section */}
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                <IndianRupee className="w-4 h-4 text-emerald-400" />
-                Meal Price (Per Meal)
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+              <label className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <IndianRupee className="w-4 h-4 text-emerald-600" />
+                Meal Rate (Per Meal)
               </label>
-              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                Current: ₹{form.mealPrice ?? DEFAULT_MEAL_PRICE}
+              <span className="text-xs font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                ₹{form.mealPrice ?? DEFAULT_MEAL_PRICE} / meal
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-400">
-              Set your device's individual price per meal. New meals marked will use this price. Past entries keep their original recorded price.
+            <p className="text-[11px] text-slate-500 font-semibold">
+              Set individual price per meal. New entries will use this rate. Past entries retain their original recorded price.
             </p>
 
             <div className="flex gap-2 items-center">
               <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-extrabold text-sm">
                   ₹
                 </span>
                 <input
@@ -153,22 +179,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     if (priceError) setPriceError(null);
                   }}
                   placeholder="e.g. 44, 50, 60"
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-7 pr-3 py-2 text-sm font-black text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-white border border-slate-300 rounded-xl pl-7 pr-3 py-2 text-sm font-black text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleSavePriceOnly}
-                className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shrink-0 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shrink-0 transition-colors shadow-2xs cursor-pointer"
               >
-                Save Price
+                Save Rate
               </button>
             </div>
 
             {/* Price Validation Error */}
             {priceError && (
-              <p className="text-xs font-semibold text-rose-400 flex items-center gap-1">
+              <p className="text-xs font-bold text-rose-600 flex items-center gap-1">
                 <AlertTriangle className="w-3.5 h-3.5" />
                 {priceError}
               </p>
@@ -176,7 +202,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Price Success Feedback */}
             {priceSuccess && (
-              <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+              <p className="text-xs font-bold text-emerald-700 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 {priceSuccess}
               </p>
@@ -185,8 +211,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Mess Name */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <Building className="w-3.5 h-3.5 text-slate-400" />
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center gap-1.5">
+              <Building className="w-3.5 h-3.5 text-slate-500" />
               Mess Name
             </label>
             <input
@@ -194,21 +220,55 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={form.messName || ''}
               onChange={(e) => setForm({ ...form, messName: e.target.value })}
               placeholder="e.g. Unique Mess / Horizon Mess"
-              className="w-full bg-slate-800/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
             />
+          </div>
+
+          {/* Theme Color Selector */}
+          <div>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-1.5 flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5 text-purple-600" />
+              App Theme & Colors
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {THEME_ACCENTS.map((th) => {
+                const isSelected = (form.theme || 'emerald') === th.id;
+                return (
+                  <button
+                    key={th.id}
+                    type="button"
+                    onClick={() => setForm({ ...form, theme: th.id })}
+                    className={`p-2.5 rounded-xl border flex items-center gap-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-purple-600 bg-purple-50/60 ring-2 ring-purple-600/20 shadow-2xs font-extrabold'
+                        : 'border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 font-semibold'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded-full ${th.color} shrink-0`} />
+                    <span className="text-xs truncate">{th.name}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-purple-600 ml-auto shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Configured Timings */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-1">
-              Configured Meal Timings
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-1">
+              Configured Meal Schedule
             </h4>
 
             {/* Breakfast Time */}
-            <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800">
-              <span className="text-sm font-semibold flex items-center gap-2">
-                <span>🍳</span> Breakfast Time
-              </span>
+            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+              <div>
+                <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>🍳</span> Breakfast Time
+                </span>
+                <span className="text-[11px] text-emerald-700 font-extrabold block ml-6 mt-0.5">
+                  {format12HourTime(form.breakfastTime) || '8:00 AM'}
+                </span>
+              </div>
               <input
                 type="time"
                 value={form.breakfastTime}
@@ -216,29 +276,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   setForm({ ...form, breakfastTime: e.target.value })
                 }
                 required
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
+                className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 shadow-2xs"
               />
             </div>
 
             {/* Lunch Time */}
-            <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800">
-              <span className="text-sm font-semibold flex items-center gap-2">
-                <span>🍛</span> Lunch Time
-              </span>
+            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+              <div>
+                <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>🍛</span> Lunch Time
+                </span>
+                <span className="text-[11px] text-emerald-700 font-extrabold block ml-6 mt-0.5">
+                  {format12HourTime(form.lunchTime) || '1:00 PM'}
+                </span>
+              </div>
               <input
                 type="time"
                 value={form.lunchTime}
                 onChange={(e) => setForm({ ...form, lunchTime: e.target.value })}
                 required
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
+                className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 shadow-2xs"
               />
             </div>
 
             {/* Dinner Time */}
-            <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800">
-              <span className="text-sm font-semibold flex items-center gap-2">
-                <span>🍽️</span> Dinner Time
-              </span>
+            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+              <div>
+                <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>🍽️</span> Dinner Time
+                </span>
+                <span className="text-[11px] text-emerald-700 font-extrabold block ml-6 mt-0.5">
+                  {format12HourTime(form.dinnerTime) || '8:00 PM'}
+                </span>
+              </div>
               <input
                 type="time"
                 value={form.dinnerTime}
@@ -246,14 +316,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   setForm({ ...form, dinnerTime: e.target.value })
                 }
                 required
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500"
+                className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 shadow-2xs"
               />
             </div>
           </div>
 
           {/* Backup, Restore & Reset Actions */}
-          <div className="pt-2 border-t border-slate-800 space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+          <div className="pt-2 border-t border-slate-100 space-y-2">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
               Data Backup & Export
             </h4>
 
@@ -264,19 +334,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onExportJSON();
                   onClose();
                 }}
-                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <FileJson className="w-4 h-4 text-emerald-400" />
-                Backup Data
+                <FileJson className="w-4 h-4 text-emerald-600" />
+                Backup JSON
               </button>
 
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Upload className="w-4 h-4 text-sky-400" />
-                Restore Data
+                <Upload className="w-4 h-4 text-sky-600" />
+                Restore JSON
               </button>
 
               <input
@@ -288,17 +358,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                onExportCSV();
-                onClose();
-              }}
-              className="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-            >
-              <Download className="w-4 h-4 text-emerald-400" />
-              Export Monthly CSV Report
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  onExportPDF();
+                  onClose();
+                }}
+                className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-rose-600" />
+                Download PDF
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onExportCSV();
+                  onClose();
+                }}
+                className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                Export CSV
+              </button>
+            </div>
 
             <button
               type="button"
@@ -306,9 +390,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onRequestResetData(false);
                 onClose();
               }}
-              className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <Trash2 className="w-4 h-4 text-amber-400" />
+              <Trash2 className="w-4 h-4 text-amber-600" />
               Reset Current Month Data
             </button>
 
@@ -318,25 +402,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onRequestResetData(true);
                 onClose();
               }}
-              className="w-full py-2 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <AlertTriangle className="w-4 h-4 text-rose-400" />
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
               Clear All Stored Records
             </button>
           </div>
 
           {/* Submit Button */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95 transition-all"
             >
               <Save className="w-4 h-4" />
               Save Settings
@@ -347,4 +431,5 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     </div>
   );
 };
+
 

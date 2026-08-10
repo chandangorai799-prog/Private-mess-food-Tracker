@@ -5,7 +5,7 @@ import {
   formatMonthKey,
   formatStringDateToIndian,
 } from '../utils/dateUtils';
-import { Plus, CreditCard, Trash2, Edit2, Check, X, Calendar, DollarSign, Wallet } from 'lucide-react';
+import { Plus, CreditCard, Trash2, Edit2, Check, X, Wallet } from 'lucide-react';
 import { ConfirmationModal } from './ConfirmationModal';
 
 interface PaymentSectionProps {
@@ -101,40 +101,40 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
   };
 
   return (
-    <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg space-y-5">
+    <section className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
-            <CreditCard className="w-4.5 h-4.5" />
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200/60 flex items-center justify-center text-sky-600 shrink-0">
+            <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-base text-white uppercase tracking-tight">
-              Payment Record
+            <h3 className="font-black text-base sm:text-lg text-slate-900 tracking-tight">
+              Payment Logger
             </h3>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className="text-xs text-slate-500 font-semibold">
               Log payments made to mess owner
             </p>
           </div>
         </div>
 
         <div className="text-right">
-          <span className="text-xs text-slate-400 block font-medium">Month Total Paid</span>
-          <span className="text-base font-black text-sky-400">
+          <span className="text-xs text-slate-400 block font-bold uppercase tracking-wider">Month Total Paid</span>
+          <span className="text-base sm:text-lg font-black text-sky-700">
             ₹{totalMonthPaid.toLocaleString('en-IN')}
           </span>
         </div>
       </div>
 
       {/* Add / Edit Payment Form */}
-      <form onSubmit={handleSubmit} className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-300">
-          <span>{editingPayment ? 'Edit Payment Entry' : 'Add New Payment'}</span>
+      <form onSubmit={handleSubmit} className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3.5">
+        <div className="flex items-center justify-between text-xs font-extrabold text-slate-700">
+          <span className="uppercase tracking-wider">{editingPayment ? 'Edit Payment Entry' : 'Add New Payment Entry'}</span>
           {editingPayment && (
             <button
               type="button"
               onClick={cancelEdit}
-              className="text-slate-400 hover:text-white flex items-center gap-1 text-[11px]"
+              className="text-slate-500 hover:text-slate-800 flex items-center gap-1 text-xs font-bold"
             >
               <X className="w-3.5 h-3.5" /> Cancel Edit
             </button>
@@ -144,11 +144,11 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Amount Field */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
               Amount Paid (₹) *
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-extrabold text-sm">
                 ₹
               </span>
               <input
@@ -159,14 +159,14 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
                 placeholder="e.g. 1500"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 font-bold text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 font-black text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
               />
             </div>
           </div>
 
           {/* Payment Date */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
               Payment Date *
             </label>
             <input
@@ -174,19 +174,19 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-medium text-xs focus:outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-bold text-xs focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
             />
           </div>
 
           {/* Payment Method */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
               Method
             </label>
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-semibold text-xs focus:outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-bold text-xs focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
             >
               <option value="UPI">UPI</option>
               <option value="Cash">Cash</option>
@@ -197,7 +197,7 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
 
           {/* Note (Optional) */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+            <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
               Note (Optional)
             </label>
             <input
@@ -205,7 +205,7 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
               placeholder="e.g. Monthly payment"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
             />
           </div>
         </div>
@@ -213,63 +213,63 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
         <div className="flex justify-end pt-1">
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
           >
             {editingPayment ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {editingPayment ? 'Update Payment' : 'Add Payment'}
+            {editingPayment ? 'Update Payment' : 'Record Payment'}
           </button>
         </div>
       </form>
 
       {/* Payment History List */}
-      <div className="space-y-2">
-        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-          <Wallet className="w-3.5 h-3.5 text-sky-400" />
+      <div className="space-y-2.5">
+        <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+          <Wallet className="w-3.5 h-3.5 text-sky-600" />
           Payment History ({monthPayments.length})
         </h4>
 
         {monthPayments.length === 0 ? (
-          <div className="text-center py-6 border border-dashed border-slate-800 rounded-xl text-slate-500 text-xs">
+          <div className="text-center py-6 border border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs font-semibold">
             No payments recorded yet for this month.
           </div>
         ) : (
-          <div className="divide-y divide-slate-800/80 border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+          <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl bg-white overflow-hidden shadow-2xs">
             {monthPayments.map((p) => (
               <div
                 key={p.id}
-                className="p-3 sm:p-3.5 flex items-center justify-between gap-3 hover:bg-slate-900/50 transition-colors"
+                className="p-3 sm:p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 font-bold text-xs shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200/80 flex items-center justify-center text-sky-700 font-black text-xs shrink-0">
                     ₹
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-black text-white text-base">
+                      <span className="font-black text-slate-900 text-base">
                         ₹{p.amount.toLocaleString('en-IN')}
                       </span>
-                      <span className="text-[10px] font-extrabold px-2 py-0.2 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                         {p.method}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 font-medium flex items-center gap-2 mt-0.5">
+                    <p className="text-xs text-slate-500 font-semibold flex items-center gap-2 mt-0.5">
                       <span>{p.formattedDate || formatStringDateToIndian(p.date)}</span>
-                      {p.note && <span className="text-slate-500">• {p.note}</span>}
+                      {p.note && <span className="text-slate-400">• {p.note}</span>}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => startEdit(p)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                    className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                     title="Edit Payment"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setDeletingId(p.id)}
-                    className="p-1.5 rounded-lg text-red-400/80 hover:text-red-400 hover:bg-red-950/40 transition-colors"
+                    className="p-2 rounded-lg text-rose-500/80 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                     title="Delete Payment"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -300,3 +300,4 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
     </section>
   );
 };
+
