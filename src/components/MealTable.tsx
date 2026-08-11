@@ -101,16 +101,16 @@ export const MealTable: React.FC<MealTableProps> = ({
   };
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden space-y-0">
+    <div className="theme-card-bg border rounded-2xl shadow-xs overflow-hidden space-y-0">
       {/* Table Header & Controls */}
-      <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+      <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 theme-card-bg">
         <div>
-          <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-emerald-600" />
+          <h2 className="text-base sm:text-lg font-black theme-text-primary flex items-center gap-2">
+            <Calendar className="w-5 h-5 theme-accent-text" />
             Daily Meal Record & Breakdown
           </h2>
-          <p className="text-xs text-slate-500 font-semibold">
-            Fixed Rate = <strong className="text-emerald-700">₹{activePrice} / meal</strong> • Tap cell to toggle
+          <p className="text-xs theme-text-muted font-semibold">
+            Fixed Rate = <strong className="theme-accent-text">₹{activePrice} / meal</strong> • Tap cell to toggle
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export const MealTable: React.FC<MealTableProps> = ({
               onClick={() => setFilter('all')}
               className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                 filter === 'all'
-                  ? 'bg-white text-emerald-700 font-black shadow-xs'
+                  ? 'theme-accent-bg text-white font-black shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -132,7 +132,7 @@ export const MealTable: React.FC<MealTableProps> = ({
               onClick={() => setFilter('today')}
               className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                 filter === 'today'
-                  ? 'bg-white text-emerald-700 font-black shadow-xs'
+                  ? 'theme-accent-bg text-white font-black shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -142,7 +142,7 @@ export const MealTable: React.FC<MealTableProps> = ({
               onClick={() => setFilter('pending')}
               className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                 filter === 'pending'
-                  ? 'bg-white text-emerald-700 font-black shadow-xs'
+                  ? 'theme-accent-bg text-white font-black shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -152,7 +152,7 @@ export const MealTable: React.FC<MealTableProps> = ({
               onClick={() => setFilter('completed')}
               className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                 filter === 'completed'
-                  ? 'bg-white text-emerald-700 font-black shadow-xs'
+                  ? 'theme-accent-bg text-white font-black shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >

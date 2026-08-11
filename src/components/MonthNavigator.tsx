@@ -24,16 +24,16 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
   const monthYearLabel = getMonthYearString(selectedYear, selectedMonth);
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-4 shadow-xs text-slate-900 transition-all">
+    <div className="theme-card-bg border rounded-2xl p-3.5 sm:p-4 shadow-xs transition-all">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Month Selector Title */}
         <div className="flex items-center justify-between sm:justify-start gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 shrink-0">
+          <div className="p-2.5 rounded-xl theme-accent-light theme-accent-text border shrink-0">
             <CalendarDays className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
+              <h2 className="text-lg sm:text-xl font-black tracking-tight theme-text-primary">
                 {monthYearLabel}
               </h2>
               {!isCurrentMonthSelected && (
@@ -42,7 +42,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
+            <p className="text-xs theme-text-muted font-medium mt-0.5">
               {daysInMonth} Days • {daysInMonth * 3} Meal Slots
             </p>
           </div>
@@ -53,7 +53,7 @@ export const MonthNavigator: React.FC<MonthNavigatorProps> = ({
           {!isCurrentMonthSelected && (
             <button
               onClick={onResetToCurrentMonth}
-              className="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200 transition-all flex items-center gap-1.5 active:scale-95"
+              className="px-3 py-2 rounded-xl theme-accent-light theme-accent-text text-xs font-bold border transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Current Month

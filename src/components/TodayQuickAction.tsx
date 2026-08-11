@@ -117,17 +117,17 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
   ];
 
   return (
-    <section className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+    <section className="theme-card-bg border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
       {/* Toast Notification with Undo */}
       {toastMessage && (
-        <div className="bg-emerald-900 text-white rounded-xl p-3 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-slate-900 text-white rounded-xl p-3 flex items-center justify-between shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2">
-            <Utensils className="w-4 h-4 text-emerald-300" />
-            <span className="text-xs font-bold text-emerald-100">{toastMessage}</span>
+            <Utensils className="w-4 h-4 theme-accent-text" />
+            <span className="text-xs font-bold text-slate-100">{toastMessage}</span>
           </div>
           <button
             onClick={handleUndo}
-            className="px-2.5 py-1 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-emerald-200 font-extrabold text-xs flex items-center gap-1 border border-emerald-600 transition-colors cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-xs flex items-center gap-1 border border-slate-700 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3 h-3" />
             UNDO
@@ -139,22 +139,22 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <Sparkles className="w-3 h-3 text-emerald-600" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase theme-badge border border-current/20">
+              <Sparkles className="w-3 h-3" />
               Today's Orders
             </span>
-            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/80">
+            <span className="text-xs font-bold theme-text-muted bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/80">
               ₹{activeRate} / meal
             </span>
           </div>
-          <h2 className="text-base sm:text-lg font-black text-slate-900 mt-1">
+          <h2 className="text-base sm:text-lg font-black theme-text-primary mt-1">
             {formattedDate}
           </h2>
         </div>
 
         <div className="text-right">
-          <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">Today's Summary</span>
-          <span className="text-base sm:text-lg font-black text-emerald-700">
+          <span className="text-xs font-bold theme-text-muted block uppercase tracking-wider">Today's Summary</span>
+          <span className="text-base sm:text-lg font-black theme-accent-text">
             {todayMealsCount} {todayMealsCount === 1 ? 'Meal' : 'Meals'} • ₹{todayCost}
           </span>
         </div>
@@ -164,7 +164,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
       <button
         type="button"
         onClick={handleQuickAddMeal}
-        className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
+        className="w-full py-3.5 px-4 rounded-xl theme-accent-btn font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all cursor-pointer"
       >
         <Plus className="w-5 h-5 stroke-[3]" />
         + ADD MEAL ₹{activeRate}
@@ -183,7 +183,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
               type="button"
               className={`relative group text-left rounded-2xl p-4 transition-all duration-200 border flex flex-col justify-between min-h-[110px] active:scale-[0.98] select-none cursor-pointer ${
                 isReceived
-                  ? 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white border-emerald-600 shadow-md shadow-emerald-500/20'
+                  ? 'theme-accent-bg text-white border-transparent shadow-md'
                   : `bg-gradient-to-br ${item.bgAccent} hover:shadow-xs text-slate-800`
               }`}
             >
@@ -194,14 +194,14 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
                   <div>
                     <span
                       className={`font-black text-base block leading-tight ${
-                        isReceived ? 'text-white' : 'text-slate-900'
+                        isReceived ? 'text-white' : 'theme-text-primary'
                       }`}
                     >
                       {item.label}
                     </span>
                     <span
                       className={`text-xs font-semibold flex items-center gap-1 mt-0.5 ${
-                        isReceived ? 'text-emerald-100' : 'text-slate-500'
+                        isReceived ? 'text-slate-100' : 'theme-text-muted'
                       }`}
                     >
                       <Clock className="w-3 h-3 opacity-80" />
@@ -214,12 +214,12 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                     isReceived
-                      ? 'bg-white text-emerald-700 shadow-md'
+                      ? 'bg-white text-slate-900 shadow-md'
                       : 'bg-white text-slate-400 border border-slate-200 group-hover:border-slate-300'
                   }`}
                 >
                   {isReceived ? (
-                    <Check className="w-5 h-5 stroke-[3]" />
+                    <Check className="w-5 h-5 stroke-[3] theme-accent-text" />
                   ) : (
                     <div className="w-3 h-3 rounded-full border-2 border-slate-300" />
                   )}
@@ -229,7 +229,7 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
               {/* Bottom State Label */}
               <div
                 className={`mt-3 pt-2.5 border-t flex items-center justify-between text-xs ${
-                  isReceived ? 'border-emerald-400/40' : 'border-slate-200/80'
+                  isReceived ? 'border-white/30' : 'border-slate-200/80'
                 }`}
               >
                 {isReceived ? (
@@ -238,13 +238,13 @@ export const TodayQuickAction: React.FC<TodayQuickActionProps> = ({
                       ✓ Completed • ₹{mealCost}
                     </span>
                     {item.entry.markedAt && (
-                      <span className="text-emerald-100 text-[11px] font-bold">
+                      <span className="text-slate-100 text-[11px] font-bold">
                         {format12HourTime(item.entry.markedAt)}
                       </span>
                     )}
                   </div>
                 ) : (
-                  <span className="text-slate-500 font-bold group-hover:text-slate-900 transition-colors">
+                  <span className="theme-text-muted font-bold group-hover:theme-text-primary transition-colors">
                     Tap to mark • ₹{activeRate}
                   </span>
                 )}

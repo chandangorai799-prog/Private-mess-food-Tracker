@@ -21,27 +21,27 @@ export const Header: React.FC<HeaderProps> = ({
   onExportPDF,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs px-3 sm:px-5 py-3 transition-colors">
+    <header className="sticky top-0 z-30 theme-header-bg backdrop-blur-md border-b shadow-xs px-3 sm:px-5 py-3 transition-colors">
       <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
         {/* Brand & Mess Name */}
         <div className="flex items-center space-x-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 p-0.5 shadow-md shadow-emerald-500/20 shrink-0 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl theme-accent-bg p-0.5 shadow-md shrink-0 flex items-center justify-center">
             <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center overflow-hidden">
               <MessTrackerLogo className="w-9 h-9" />
             </div>
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 truncate">
+              <h1 className="text-base sm:text-lg font-black tracking-tight theme-text-primary truncate">
                 {messName || 'Smart Mess Tracker'}
               </h1>
-              <span className="hidden xs:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+              <span className="hidden xs:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase theme-badge border border-current/20">
                 <Sparkles className="w-2.5 h-2.5" />
                 Smart Mess
               </span>
             </div>
-            <p className="text-[11px] sm:text-xs text-slate-500 flex items-center gap-1.5 font-medium">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <p className="text-[11px] sm:text-xs theme-text-muted flex items-center gap-1.5 font-medium">
+              <span className="inline-block w-2 h-2 rounded-full theme-accent-bg animate-pulse"></span>
               Live Food Tracker
             </p>
           </div>
@@ -52,9 +52,9 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenThemeSelector}
             title="Change Theme & Dynamic Colors"
-            className="p-2 sm:px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/80 transition-all flex items-center gap-1.5 text-xs font-extrabold active:scale-95 shadow-2xs cursor-pointer"
+            className="p-2 sm:px-3 py-2 rounded-xl theme-accent-light border transition-all flex items-center gap-1.5 text-xs font-extrabold active:scale-95 shadow-2xs cursor-pointer"
           >
-            <Palette className="w-4 h-4 text-purple-600" />
+            <Palette className="w-4 h-4 theme-accent-text" />
             <span className="hidden sm:inline">Theme</span>
           </button>
           <button

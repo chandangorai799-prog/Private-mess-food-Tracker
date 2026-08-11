@@ -12,106 +12,177 @@
 }
 
 /* ==========================================================
-   DYNAMIC THEME PALETTES
+   DYNAMIC THEME PALETTES (CSS Custom Properties)
    ========================================================== */
 
 /* 1. Emerald Fresh (Default) */
 :root, [data-theme="emerald"] {
   --theme-bg: #f8fafc;
-  --theme-header-bg: rgba(255, 255, 255, 0.95);
-  --theme-card-bg: #ffffff;
-  --theme-border: rgba(226, 232, 240, 0.85);
-  --theme-text-primary: #0f172a;
-  --theme-text-secondary: #475569;
+  --theme-card: #ffffff;
+  --theme-subtle: #f1f5f9;
+  --theme-border: #e2e8f0;
+  --theme-text: #0f172a;
+  --theme-muted: #64748b;
   --theme-accent: #059669;
   --theme-accent-hover: #047857;
   --theme-accent-light: #ecfdf5;
   --theme-accent-border: #a7f3d0;
+  --theme-accent-text: #047857;
   --theme-badge-bg: #dcfce7;
   --theme-badge-text: #15803d;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* 2. Sapphire Blue */
 [data-theme="sapphire"] {
   --theme-bg: #f0f4f9;
-  --theme-header-bg: rgba(255, 255, 255, 0.95);
-  --theme-card-bg: #ffffff;
-  --theme-border: rgba(203, 213, 225, 0.8);
-  --theme-text-primary: #0f172a;
-  --theme-text-secondary: #334155;
+  --theme-card: #ffffff;
+  --theme-subtle: #f8fafc;
+  --theme-border: #cbd5e1;
+  --theme-text: #0f172a;
+  --theme-muted: #475569;
   --theme-accent: #2563eb;
   --theme-accent-hover: #1d4ed8;
   --theme-accent-light: #eff6ff;
   --theme-accent-border: #bfdbfe;
+  --theme-accent-text: #1d4ed8;
   --theme-badge-bg: #dbeafe;
   --theme-badge-text: #1e40af;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* 3. Sunset Orange */
 [data-theme="sunset"] {
   --theme-bg: #faf5f0;
-  --theme-header-bg: rgba(255, 255, 255, 0.95);
-  --theme-card-bg: #ffffff;
-  --theme-border: rgba(254, 215, 170, 0.7);
-  --theme-text-primary: #1c1917;
-  --theme-text-secondary: #44403c;
+  --theme-card: #ffffff;
+  --theme-subtle: #fff7ed;
+  --theme-border: #fed7aa;
+  --theme-text: #1c1917;
+  --theme-muted: #57534e;
   --theme-accent: #ea580c;
   --theme-accent-hover: #c2410c;
   --theme-accent-light: #fff7ed;
   --theme-accent-border: #fed7aa;
+  --theme-accent-text: #c2410c;
   --theme-badge-bg: #ffedd5;
-  --theme-badge-text: #c2410c;
+  --theme-badge-text: #9a3412;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* 4. Royal Purple */
 [data-theme="purple"] {
   --theme-bg: #f5f3ff;
-  --theme-header-bg: rgba(255, 255, 255, 0.95);
-  --theme-card-bg: #ffffff;
-  --theme-border: rgba(221, 214, 254, 0.8);
-  --theme-text-primary: #1e1b4b;
-  --theme-text-secondary: #3730a3;
+  --theme-card: #ffffff;
+  --theme-subtle: #faf5ff;
+  --theme-border: #ddd6fe;
+  --theme-text: #1e1b4b;
+  --theme-muted: #4338ca;
   --theme-accent: #7c3aed;
   --theme-accent-hover: #6d28d9;
   --theme-accent-light: #f5f3ff;
   --theme-accent-border: #ddd6fe;
+  --theme-accent-text: #6d28d9;
   --theme-badge-bg: #ede9fe;
-  --theme-badge-text: #6d28d9;
+  --theme-badge-text: #5b21b6;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* 5. Rose Ruby */
 [data-theme="rose"] {
   --theme-bg: #fff1f2;
-  --theme-header-bg: rgba(255, 255, 255, 0.95);
-  --theme-card-bg: #ffffff;
-  --theme-border: rgba(254, 205, 211, 0.8);
-  --theme-text-primary: #881337;
-  --theme-text-secondary: #9f1239;
+  --theme-card: #ffffff;
+  --theme-subtle: #fff1f2;
+  --theme-border: #fecdd3;
+  --theme-text: #881337;
+  --theme-muted: #9f1239;
   --theme-accent: #e11d48;
   --theme-accent-hover: #be123c;
   --theme-accent-light: #fff1f2;
   --theme-accent-border: #fecdd3;
+  --theme-accent-text: #be123c;
   --theme-badge-bg: #ffe4e6;
-  --theme-badge-text: #be123c;
+  --theme-badge-text: #9f1239;
+  --theme-header-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* 6. Dark Midnight (OLED) */
 [data-theme="dark"] {
   --theme-bg: #0b0f19;
-  --theme-header-bg: rgba(15, 23, 42, 0.95);
-  --theme-card-bg: #111827;
+  --theme-card: #111827;
+  --theme-subtle: #1f2937;
   --theme-border: #1f2937;
-  --theme-text-primary: #f9fafb;
-  --theme-text-secondary: #9ca3af;
+  --theme-text: #f9fafb;
+  --theme-muted: #9ca3af;
   --theme-accent: #10b981;
   --theme-accent-hover: #059669;
   --theme-accent-light: rgba(16, 185, 129, 0.12);
   --theme-accent-border: rgba(16, 185, 129, 0.3);
+  --theme-accent-text: #34d399;
   --theme-badge-bg: rgba(16, 185, 129, 0.2);
   --theme-badge-text: #34d399;
+  --theme-header-bg: rgba(17, 24, 39, 0.95);
 }
 
-/* Custom Scrollbar for tables and filters */
+/* ==========================================================
+   DYNAMIC THEME UTILITIES
+   ========================================================== */
+
+.theme-app-bg {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+.theme-card-bg {
+  background-color: var(--theme-card);
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+
+.theme-header-bg {
+  background-color: var(--theme-header-bg);
+  border-color: var(--theme-border);
+}
+
+.theme-accent-btn {
+  background-color: var(--theme-accent);
+  color: #ffffff;
+}
+.theme-accent-btn:hover {
+  background-color: var(--theme-accent-hover);
+}
+
+.theme-accent-bg {
+  background-color: var(--theme-accent);
+}
+
+.theme-accent-light {
+  background-color: var(--theme-accent-light);
+  border-color: var(--theme-accent-border);
+  color: var(--theme-accent-text);
+}
+
+.theme-accent-text {
+  color: var(--theme-accent-text);
+}
+
+.theme-accent-border {
+  border-color: var(--theme-accent-border);
+}
+
+.theme-badge {
+  background-color: var(--theme-badge-bg);
+  color: var(--theme-badge-text);
+}
+
+.theme-text-primary {
+  color: var(--theme-text);
+}
+
+.theme-text-muted {
+  color: var(--theme-muted);
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   height: 6px;
   width: 6px;
@@ -127,10 +198,10 @@
   background: #94a3b8;
 }
 
-/* Touch active state feedback */
 .active-press {
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .active-press:active {
   transform: scale(0.97);
 }
+

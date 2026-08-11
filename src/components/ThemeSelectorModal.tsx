@@ -132,10 +132,12 @@ export const ThemeSelectorModal: React.FC<ThemeSelectorModalProps> = ({
                 type="button"
                 onClick={() => {
                   onSelectTheme(theme.id);
+                  document.documentElement.setAttribute('data-theme', theme.id);
+                  document.body.setAttribute('data-theme', theme.id);
                 }}
                 className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99] ${
                   isSelected
-                    ? 'border-emerald-600 bg-emerald-50/50 shadow-xs ring-2 ring-emerald-600/20'
+                    ? 'border-slate-900 bg-slate-50 shadow-xs ring-2 ring-slate-900/10'
                     : 'border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >
@@ -166,10 +168,12 @@ export const ThemeSelectorModal: React.FC<ThemeSelectorModalProps> = ({
 
                 {/* Selection Radio / Check Indicator */}
                 <div
+                  style={{
+                    backgroundColor: isSelected ? theme.primaryColor : 'transparent',
+                    borderColor: isSelected ? theme.primaryColor : '#cbd5e1',
+                  }}
                   className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ${
-                    isSelected
-                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
-                      : 'border-slate-300 bg-white'
+                    isSelected ? 'text-white shadow-xs' : 'bg-white'
                   }`}
                 >
                   {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}

@@ -72,10 +72,11 @@ export default function App() {
     allData: false,
   });
 
-  // Apply theme to document element
+  // Apply theme to document element and body
   useEffect(() => {
     const currentTheme = settings.theme || 'emerald';
     document.documentElement.setAttribute('data-theme', currentTheme);
+    document.body.setAttribute('data-theme', currentTheme);
   }, [settings.theme]);
 
   // Save meal data whenever it changes
@@ -270,7 +271,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen theme-app-bg flex flex-col font-sans transition-colors duration-200">
       {/* Top Sticky Header */}
       <Header
         messName={settings.messName || 'Private Mess Tracker'}

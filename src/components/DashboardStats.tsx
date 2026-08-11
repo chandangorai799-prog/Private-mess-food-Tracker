@@ -31,31 +31,31 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-      {/* 1. Today's Meals & Orders */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
-        <div className="flex items-center justify-between text-slate-500 mb-2">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+      {/* 1. Today's Orders */}
+      <div className="theme-card-bg border rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
+        <div className="flex items-center justify-between theme-text-muted mb-2">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider opacity-70">
             Today's Orders
           </span>
-          <div className="p-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 group-hover:scale-110 transition-transform">
-            <Utensils className="w-4 h-4" />
+          <div className="p-2 rounded-xl theme-accent-light border group-hover:scale-110 transition-transform">
+            <Utensils className="w-4 h-4 theme-accent-text" />
           </div>
         </div>
         <div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5">
+          <div className="text-2xl sm:text-3xl font-black theme-text-primary tracking-tight flex items-baseline gap-1.5">
             <span>₹{todayCost}</span>
-            <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">
+            <span className="text-xs font-bold theme-badge px-2 py-0.5 rounded-full border border-current/20">
               {todayMealsCount} {todayMealsCount === 1 ? 'meal' : 'meals'}
             </span>
           </div>
           <div className="mt-2.5 space-y-1">
-            <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+            <div className="flex justify-between text-[11px] font-semibold theme-text-muted">
               <span>Day Progress</span>
               <span>{todayMealsCount}/3 Slots</span>
             </div>
             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 rounded-full"
+                className="h-full theme-accent-bg transition-all duration-500 rounded-full"
                 style={{ width: `${(todayMealsCount / 3) * 100}%` }}
               />
             </div>
@@ -64,31 +64,31 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
       </div>
 
       {/* 2. Monthly Bill */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
-        <div className="flex items-center justify-between text-slate-500 mb-2">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+      <div className="theme-card-bg border rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
+        <div className="flex items-center justify-between theme-text-muted mb-2">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider opacity-70">
             {monthName} Total Bill
           </span>
-          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 group-hover:scale-110 transition-transform">
-            <IndianRupee className="w-4 h-4" />
+          <div className="p-2 rounded-xl theme-accent-light border group-hover:scale-110 transition-transform">
+            <IndianRupee className="w-4 h-4 theme-accent-text" />
           </div>
         </div>
         <div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">
+          <div className="text-2xl sm:text-3xl font-black theme-accent-text tracking-tight">
             ₹{billing.monthlyBill}
           </div>
-          <p className="text-xs text-slate-500 font-semibold mt-1 flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+          <p className="text-xs theme-text-muted font-semibold mt-1 flex items-center gap-1">
+            <TrendingUp className="w-3.5 h-3.5 theme-accent-text" />
             {billing.totalMeals} meals recorded • ₹{currentRate}/meal
           </p>
           <div className="mt-2.5 space-y-1">
-            <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+            <div className="flex justify-between text-[11px] font-semibold theme-text-muted">
               <span>Attendance Rate</span>
               <span>{attendancePercentage}%</span>
             </div>
             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
+                className="h-full theme-accent-bg transition-all duration-500 rounded-full"
                 style={{ width: `${Math.min(100, attendancePercentage)}%` }}
               />
             </div>
@@ -97,9 +97,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
       </div>
 
       {/* 3. Total Paid */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
-        <div className="flex items-center justify-between text-slate-500 mb-2">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+      <div className="theme-card-bg border rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
+        <div className="flex items-center justify-between theme-text-muted mb-2">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider opacity-70">
             Total Paid
           </span>
           <div className="p-2 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 group-hover:scale-110 transition-transform">
@@ -107,10 +107,10 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
           </div>
         </div>
         <div>
-          <div className="text-2xl sm:text-3xl font-black text-sky-700 tracking-tight">
+          <div className="text-2xl sm:text-3xl font-black text-sky-600 tracking-tight">
             ₹{billing.effectivePaid}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
+          <p className="text-xs theme-text-muted font-medium mt-1">
             {billing.previousAdvance > 0
               ? `Paid ₹${billing.totalPaid} + Adv ₹${billing.previousAdvance}`
               : 'All cleared payments applied'}
@@ -119,9 +119,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
       </div>
 
       {/* 4. Pending Amount / Status */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
-        <div className="flex items-center justify-between text-slate-500 mb-2">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+      <div className="theme-card-bg border rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 group">
+        <div className="flex items-center justify-between theme-text-muted mb-2">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider opacity-70">
             {billing.advanceBalance > 0 ? 'Advance Credit' : 'Pending Amount'}
           </span>
           <span
@@ -139,18 +139,18 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                 ? 'text-sky-600'
                 : billing.remainingBalance > 0
                 ? 'text-rose-600'
-                : 'text-emerald-600'
+                : 'theme-accent-text'
             }`}
           >
             {billing.advanceBalance > 0
               ? `+₹${billing.advanceBalance}`
               : `₹${billing.remainingBalance}`}
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1">
+          <p className="text-xs theme-text-muted font-medium mt-1 flex items-center gap-1">
             {billing.remainingBalance > 0 ? (
               <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
             ) : (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              <CheckCircle2 className="w-3.5 h-3.5 theme-accent-text" />
             )}
             Avg Expense: ₹{billing.averageDailyExpense}/day
           </p>

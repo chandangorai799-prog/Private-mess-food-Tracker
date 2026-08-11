@@ -101,7 +101,7 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
   };
 
   return (
-    <section className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-5">
+    <section className="theme-card-bg border rounded-2xl p-4 sm:p-5 shadow-xs space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2.5">
@@ -109,10 +109,10 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-black text-base sm:text-lg text-slate-900 tracking-tight">
+            <h3 className="font-black text-base sm:text-lg theme-text-primary tracking-tight">
               Payment Logger
             </h3>
-            <p className="text-xs text-slate-500 font-semibold">
+            <p className="text-xs theme-text-muted font-semibold">
               Log payments made to mess owner
             </p>
           </div>
