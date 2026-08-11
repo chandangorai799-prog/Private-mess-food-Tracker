@@ -85,25 +85,34 @@ function migrateMealEntry(
 }
 
 /**
- * Load all meal tracker data from localStorage with automatic migration
+ * Load all meal tracker data from localStorage with automatic migration and defensive parsing
  */
 export function loadMealData(): MealTrackerData {
   try {
     const raw = localStorage.getItem(STORAGE_DATA_KEY);
     if (!raw) return {};
-    const parsed = JSON.parse(raw) as MealTrackerData;
+    let parsed = JSON.parse(raw);
+
+    // Auto-fix if raw was stored as { data: {...}, payments: [...] } due to object mutation bug
+    if (parsed && typeof parsed === 'object' && 'data' in parsed && typeof parsed.data === 'object') {
+      parsed = parsed.data;
+    }
 
     // Automatic migration for existing data
     const migrated: MealTrackerData = {};
-    Object.keys(parsed).forEach((dateKey) => {
-      const rec = parsed[dateKey];
-      migrated[dateKey] = {
-        ...rec,
-        breakfast: migrateMealEntry(rec.breakfast),
-        lunch: migrateMealEntry(rec.lunch),
-        dinner: migrateMealEntry(rec.dinner),
-      };
-    });
+    if (parsed && typeof parsed === 'object') {
+      Object.keys(parsed).forEach((dateKey) => {
+        const rec = parsed[dateKey];
+        if (rec && typeof rec === 'object' && ('breakfast' in rec || 'lunch' in rec || 'dinner' in rec)) {
+          migrated[dateKey] = {
+            ...rec,
+            breakfast: migrateMealEntry(rec.breakfast),
+            lunch: migrateMealEntry(rec.lunch),
+            dinner: migrateMealEntry(rec.dinner),
+          };
+        }
+      });
+    }
 
     return migrated;
   } catch (err) {
@@ -482,14 +491,21 @@ export function exportBackupJSON(
   settings: MessSettings
 ): void {
   const currentPrice = settings.mealPrice || DEFAULT_MEAL_PRICE;
+
+  // Ensure clean data structure
+  let cleanData: MealTrackerData = data;
+  if (data && typeof data === 'object' && 'data' in data && typeof (data as any).data === 'object') {
+    cleanData = (data as any).data;
+  }
+
   const backupObj = {
     app: 'My Mess Tracker',
     version: 3,
     ratePerMeal: currentPrice,
     exportedAt: new Date().toISOString(),
-    mealRecords: data,
-    payments: payments,
-    settings: settings,
+    mealRecords: cleanData || {},
+    payments: payments || [],
+    settings: settings || DEFAULT_SETTINGS,
   };
 
   const jsonStr = JSON.stringify(backupObj, null, 2);
@@ -522,9 +538,17 @@ export function restoreBackupJSON(jsonStr: string): {
       return { success: false, error: 'Invalid JSON format' };
     }
 
-    const mealData = parsed.mealRecords || parsed.mealData || {};
-    const payments = parsed.payments || [];
-    const settings = parsed.settings || DEFAULT_SETTINGS;
+    let rawMealData = parsed.mealRecords || parsed.mealData || parsed.records || parsed.data || {};
+    if (rawMealData && typeof rawMealData === 'object' && 'data' in rawMealData && typeof rawMealData.data === 'object') {
+      rawMealData = rawMealData.data;
+    }
+
+    const mealData: MealTrackerData = rawMealData;
+    const payments: PaymentRecord[] = parsed.payments || parsed.paymentRecords || parsed.paymentData || [];
+    const settings: MessSettings = {
+      ...DEFAULT_SETTINGS,
+      ...(parsed.settings || parsed.preferences || {}),
+    };
 
     saveMealData(mealData);
     savePayments(payments);

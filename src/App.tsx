@@ -253,19 +253,16 @@ export default function App() {
 
   // Handle data reset confirmation
   const handleConfirmResetData = () => {
+    // Take an automatic backup before clearing so user data is never lost permanently
+    exportBackupJSON(mealData, payments, settings);
+
     const updated = clearData(
       confirmReset.allData,
       selectedYear,
       selectedMonth
     );
-    setMealData(updated);
-
-    if (confirmReset.allData) {
-      setPayments([]);
-    } else {
-      const currentMonthKey = formatMonthKey(selectedYear, selectedMonth);
-      setPayments((prev) => prev.filter((p) => p.monthKey !== currentMonthKey));
-    }
+    setMealData(updated.data);
+    setPayments(updated.payments);
 
     setConfirmReset({ isOpen: false, allData: false });
   };
