@@ -273,6 +273,136 @@ export function calculateMonthStats(
 }
 
 /**
+ * Calculate the total meal bill for a specific month
+ */
+export function calculateMonthBill(
+  year: number,
+  month: number, // 0-indexed
+  data: MealTrackerData,
+  currentMealPrice: number = DEFAULT_MEAL_PRICE
+): number {
+  const dates = getDatesInMonth(year, month);
+  let bill = 0;
+  dates.forEach((d) => {
+    const key = formatDateKey(d);
+    const rec = getDayRecord(data, key, currentMealPrice);
+    (['breakfast', 'lunch', 'dinner'] as MealType[]).forEach((mealKey) => {
+      const entry = rec[mealKey];
+      if (entry.received) {
+        bill += entry.amount ?? entry.rateAtTime ?? currentMealPrice;
+      }
+    });
+  });
+  return bill;
+}
+
+/**
+ * Calculate total direct payments made in a specific month
+ */
+export function calculateMonthPayments(
+  year: number,
+  month: number, // 0-indexed
+  payments: PaymentRecord[]
+): number {
+  const monthKey = formatMonthKey(year, month);
+  const monthPayments = payments.filter((p) => p.monthKey === monthKey);
+  return monthPayments.reduce((sum, p) => sum + p.amount, 0);
+}
+
+/**
+ * Calculate the carried-over opening balance (advance) for a target month
+ * by reliably propagating previous months' final closing balances.
+ *
+ * OPENING BALANCE = Previous month's FINAL CLOSING BALANCE
+ * FINAL CLOSING BALANCE = Opening Balance + Payments - Meal Charges
+ * If closing balance is positive, it carries over as advance credit.
+ */
+export function calculatePreviousAdvance(
+  year: number,
+  month: number, // 0-indexed
+  data: MealTrackerData,
+  payments: PaymentRecord[],
+  usePreviousAdvance: boolean = true,
+  currentMealPrice: number = DEFAULT_MEAL_PRICE
+): number {
+  if (!usePreviousAdvance) {
+    return 0;
+  }
+
+  const targetMonthKey = formatMonthKey(year, month);
+
+  // Collect all month keys that have any meals or payment records
+  const monthKeySet = new Set<string>();
+
+  if (data && typeof data === 'object') {
+    Object.keys(data).forEach((dateKey) => {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+        monthKeySet.add(dateKey.substring(0, 7));
+      }
+    });
+  }
+
+  if (Array.isArray(payments)) {
+    payments.forEach((p) => {
+      if (p.monthKey && /^\d{4}-\d{2}$/.test(p.monthKey)) {
+        monthKeySet.add(p.monthKey);
+      } else if (p.date && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) {
+        monthKeySet.add(p.date.substring(0, 7));
+      }
+    });
+  }
+
+  if (monthKeySet.size === 0) {
+    return 0;
+  }
+
+  const sortedMonths = Array.from(monthKeySet).sort();
+  const earliestMonthKey = sortedMonths[0];
+
+  // If earliest activity is at or after target month, there is no prior month with data
+  if (earliestMonthKey >= targetMonthKey) {
+    return 0;
+  }
+
+  const [eYearStr, eMonthStr] = earliestMonthKey.split('-');
+  let curYear = parseInt(eYearStr, 10);
+  let curMonth = parseInt(eMonthStr, 10) - 1; // Convert to 0-indexed
+
+  let runningAdvance = 0;
+  let iterations = 0;
+  const maxIterations = 240; // Max 20 years safety limit
+
+  while (iterations < maxIterations) {
+    const curKey = formatMonthKey(curYear, curMonth);
+    if (curKey >= targetMonthKey) {
+      break;
+    }
+
+    const monthBill = calculateMonthBill(curYear, curMonth, data, currentMealPrice);
+    const monthPaid = calculateMonthPayments(curYear, curMonth, payments);
+    const effectivePaid = monthPaid + runningAdvance;
+
+    if (effectivePaid > monthBill) {
+      runningAdvance = effectivePaid - monthBill;
+    } else {
+      runningAdvance = 0;
+    }
+
+    // Advance to next calendar month
+    if (curMonth === 11) {
+      curMonth = 0;
+      curYear += 1;
+    } else {
+      curMonth += 1;
+    }
+
+    iterations++;
+  }
+
+  return runningAdvance;
+}
+
+/**
  * Calculate full billing summary for a specific year and month
  */
 export function calculateBillingSummary(
@@ -283,56 +413,26 @@ export function calculateBillingSummary(
   usePreviousAdvance: boolean = true,
   currentMealPrice: number = DEFAULT_MEAL_PRICE
 ): BillingSummary {
-  const monthKey = formatMonthKey(year, month);
   const stats = calculateMonthStats(year, month, data);
   const totalMeals = stats.totalReceived;
 
   // Sum actual meal amounts for current month
-  const dates = getDatesInMonth(year, month);
-  let monthlyBill = 0;
-  dates.forEach((d) => {
-    const key = formatDateKey(d);
-    const rec = getDayRecord(data, key, currentMealPrice);
-    (['breakfast', 'lunch', 'dinner'] as MealType[]).forEach((mealKey) => {
-      const entry = rec[mealKey];
-      if (entry.received) {
-        monthlyBill += entry.amount ?? entry.rateAtTime ?? currentMealPrice;
-      }
-    });
-  });
+  const monthlyBill = calculateMonthBill(year, month, data, currentMealPrice);
 
   // Payments for current month
-  const monthPayments = payments.filter((p) => p.monthKey === monthKey);
-  const totalPaid = monthPayments.reduce((sum, p) => sum + p.amount, 0);
+  const totalPaid = calculateMonthPayments(year, month, payments);
 
-  // Check previous month advance if requested
-  let previousAdvance = 0;
-  if (usePreviousAdvance) {
-    const prevKey = getPreviousMonthKey(year, month);
-    const [prevYearStr, prevMonthStr] = prevKey.split('-');
-    const prevYear = parseInt(prevYearStr, 10);
-    const prevMonth = parseInt(prevMonthStr, 10) - 1; // Convert to 0-indexed
-
-    const prevDates = getDatesInMonth(prevYear, prevMonth);
-    let prevBill = 0;
-    prevDates.forEach((d) => {
-      const key = formatDateKey(d);
-      const rec = getDayRecord(data, key, currentMealPrice);
-      (['breakfast', 'lunch', 'dinner'] as MealType[]).forEach((mealKey) => {
-        const entry = rec[mealKey];
-        if (entry.received) {
-          prevBill += entry.amount ?? entry.rateAtTime ?? currentMealPrice;
-        }
-      });
-    });
-
-    const prevPayments = payments.filter((p) => p.monthKey === prevKey);
-    const prevPaid = prevPayments.reduce((sum, p) => sum + p.amount, 0);
-
-    if (prevPaid > prevBill) {
-      previousAdvance = prevPaid - prevBill;
-    }
-  }
+  // Check previous month advance if requested (chained from historical closing balances)
+  const previousAdvance = usePreviousAdvance
+    ? calculatePreviousAdvance(
+        year,
+        month,
+        data,
+        payments,
+        usePreviousAdvance,
+        currentMealPrice
+      )
+    : 0;
 
   const effectivePaid = totalPaid + previousAdvance;
 
